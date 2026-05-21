@@ -17,6 +17,7 @@ import {
   validatePermissionPattern
 } from "./permissions.js";
 import { checkPluginHook, ensureDefaultPlugins, pluginHookSnapshot, pluginRegistrySnapshot } from "./plugins.js";
+import { buildSessionTimeline } from "./sessions.js";
 import { GoatmezStateStore, GoatmezVaultStore, emptyGoatmezState } from "./storage.js";
 import type {
   GoatmezApprovalRecord,
@@ -411,6 +412,37 @@ export class GoatmezRuntime {
         approvals: session.approvals,
         completedAt: session.completedAt || null
       }
+    };
+  }
+
+  sessionTimeline(sessionId: string): Record<string, unknown> | null {
+    const state = this.ensureState();
+    const session = state.sessions.find((item) => item.id === sessionId);
+    if (!session) return null;
+    const mission = state.missions.find((item) => item.id === session.missionId);
+    const task = mission?.taskId ? state.tasks.find((item) => item.id === mission.taskId) : undefined;
+    const approvals = state.approvals.filter((item) => item.missionId === session.missionId);
+    const events = buildSessionTimeline({ session, mission, task, approvals });
+    return {
+      ok: true,
+      replaySafeId: `timeline_${session.id}`,
+      sessionId: session.id,
+      missionId: session.missionId,
+      eventCount: events.length,
+      events
+    };
+  }
+
+  exportSession(sessionId: string): Record<string, unknown> | null {
+    const summary = this.replaySessionSummary(sessionId);
+    const timeline = this.sessionTimeline(sessionId);
+    if (!summary || !timeline) return null;
+    return {
+      ok: true,
+      replaySafeId: `export_${sessionId}`,
+      exportedAt: new Date().toISOString(),
+      summary: summary.session,
+      timeline
     };
   }
 

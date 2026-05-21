@@ -309,8 +309,26 @@ export function createGoatmezRouter(): express.Router {
     res.json({ ok: true, session });
   });
 
+  router.get("/sessions/:id/timeline", auth, (req: Request, res: Response) => {
+    const output = runtime.sessionTimeline(req.params.id);
+    if (!output) {
+      res.status(404).json({ ok: false, error: "session not found" });
+      return;
+    }
+    res.json(output);
+  });
+
   router.post("/sessions/:id/replay-summary", auth, (req: Request, res: Response) => {
     const output = runtime.replaySessionSummary(req.params.id);
+    if (!output) {
+      res.status(404).json({ ok: false, error: "session not found" });
+      return;
+    }
+    res.json(output);
+  });
+
+  router.post("/sessions/:id/export", auth, (req: Request, res: Response) => {
+    const output = runtime.exportSession(req.params.id);
     if (!output) {
       res.status(404).json({ ok: false, error: "session not found" });
       return;

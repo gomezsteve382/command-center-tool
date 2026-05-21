@@ -200,3 +200,12 @@ export interface GoatmezCommandPreview {
   reasons: string[];
   preview: string;
 }
+
+export interface GoatmezSessionTimelineEvent {
+  id: string;
+  type: string;
+  status: string;
+  title: string;
+  timestamp: string;
+  details: Record<string, unknown>;
+}

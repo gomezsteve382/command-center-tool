@@ -200,6 +200,14 @@ async function main() {
       headers: { "Content-Type": "application/json" }
     });
     assert(replay.ok === true, "session replay summary failed");
+    const timeline = await request(`/api/goatmez/sessions/${sessions[0].id}/timeline`);
+    assert(timeline.ok === true, "session timeline failed");
+    assert(Array.isArray(timeline.events), "session timeline events missing");
+    const exported = await request(`/api/goatmez/sessions/${sessions[0].id}/export`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+    assert(exported.ok === true, "session export failed");
   }
 
   const approvals = await request("/api/goatmez/approvals?status=pending");

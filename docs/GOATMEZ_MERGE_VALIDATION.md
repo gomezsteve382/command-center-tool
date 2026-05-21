@@ -64,6 +64,10 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Classifies a command preview before an operator runs it.
 - `POST /api/goatmez/sessions/:id/replay-summary`
   - Returns replay-safe mission/session summary payload for operator review.
+- `GET /api/goatmez/sessions/:id/timeline`
+  - Returns replay-safe session timeline events without re-executing tools.
+- `POST /api/goatmez/sessions/:id/export`
+  - Returns a replay-safe session summary and timeline export payload.
 - `GET /api/goatmez/connectors/diagnostics?agentId=operator`
   - Returns per-agent connector diagnostics and failure reasons.
 - `POST /api/goatmez/connectors/:id/verify-dry-run`

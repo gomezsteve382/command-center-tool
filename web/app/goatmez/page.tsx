@@ -653,6 +653,24 @@ export default function GoatmezPage() {
                   >
                     Replay Summary
                   </button>
+                  <button
+                    className="mt-2 ml-2 rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                    onClick={async () => {
+                      const payload = await api(`sessions/${String(session.id)}/timeline`);
+                      setSessionReplayPreview(payload);
+                    }}
+                  >
+                    Timeline
+                  </button>
+                  <button
+                    className="mt-2 ml-2 rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                    onClick={async () => {
+                      const payload = await api(`sessions/${String(session.id)}/export`, { method: "POST" });
+                      setSessionReplayPreview(payload);
+                    }}
+                  >
+                    Export
+                  </button>
                 </div>
               ))}
               {!sessions.length && !loading && <p className="text-surface-500">No session records yet.</p>}
