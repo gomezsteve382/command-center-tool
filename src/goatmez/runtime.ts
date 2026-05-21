@@ -432,6 +432,50 @@ export class GoatmezRuntime {
     };
   }
 
+  recentActivity(limit = 30): Record<string, unknown> {
+    const state = this.ensureState();
+    const rows: Array<Record<string, unknown>> = [];
+
+    for (const session of state.sessions.slice(0, limit)) {
+      rows.push({
+        type: "session",
+        id: session.id,
+        status: session.status,
+        message: session.message,
+        timestamp: session.updatedAt
+      });
+    }
+    for (const approval of state.approvals.slice(0, limit)) {
+      rows.push({
+        type: "approval",
+        id: approval.id,
+        status: approval.status,
+        message: `${approval.toolName} (${approval.reason})`,
+        timestamp: approval.updatedAt
+      });
+    }
+    for (const mission of state.missions.slice(0, limit)) {
+      rows.push({
+        type: "mission",
+        id: mission.id,
+        status: mission.status,
+        message: mission.message,
+        timestamp: mission.updatedAt
+      });
+    }
+
+    const sorted = rows
+      .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))
+      .slice(0, Math.max(1, limit));
+
+    return {
+      ok: true,
+      generatedAt: new Date().toISOString(),
+      count: sorted.length,
+      items: sorted
+    };
+  }
+
   importLegacyNow(): { imported: boolean; notes: string[] } {
     const state = this.ensureState();
     const result = importLegacyGoatmezData(this.config, state);

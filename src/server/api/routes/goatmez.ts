@@ -37,6 +37,11 @@ export function createGoatmezRouter(): express.Router {
     res.json(runtime.metricsSnapshot());
   });
 
+  router.get("/activity/recent", auth, (req: Request, res: Response) => {
+    const limit = typeof req.query?.limit === "string" ? Number(req.query.limit) : 30;
+    res.json(runtime.recentActivity(Number.isFinite(limit) ? limit : 30));
+  });
+
   router.post("/migrations/legacy", auth, limit, (_req: Request, res: Response) => {
     res.json({ ok: true, result: runtime.importLegacyNow() });
   });

@@ -46,6 +46,10 @@ async function main() {
   assert(connectorDiagnostics.ok === true, "connector diagnostics must be ok");
   assert(Array.isArray(connectorDiagnostics.connectors), "connector diagnostics list missing");
 
+  const activity = await request("/api/goatmez/activity/recent?limit=10");
+  assert(activity.ok === true, "activity feed must be ok");
+  assert(Array.isArray(activity.items), "activity feed items missing");
+
   const mcpReload = await request("/api/goatmez/mcp/reload", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -105,6 +109,7 @@ async function main() {
         mcpSummary: diagnostics.mcp,
         queueMetrics: metrics.queue,
         connectorDiagnostics: connectorDiagnostics.connectors.length,
+        activityCount: activity.items.length,
         permissionSummary: permissionDiagnostics.decisionSummary,
         simulationCount: simulation.evaluatedCount,
         conflictRules: conflicts.rules.length,

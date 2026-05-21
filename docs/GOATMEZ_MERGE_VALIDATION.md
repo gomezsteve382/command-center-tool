@@ -34,6 +34,8 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Runs a non-destructive connector verification verdict for the selected agent.
 - `POST /api/goatmez/mcp/reload`
   - Refreshes MCP diagnostics from `.mcp.json` without executing connector actions.
+- `GET /api/goatmez/activity/recent?limit=10`
+  - Returns unified mission/session/approval activity rows for operator timeline views.
 
 ## API startup for validation
 
