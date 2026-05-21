@@ -36,6 +36,12 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Refreshes MCP diagnostics from `.mcp.json` without executing connector actions.
 - `GET /api/goatmez/activity/recent?limit=10`
   - Returns unified mission/session/approval activity rows for operator timeline views.
+- `GET /api/goatmez/approvals?status=pending`
+  - Lists approval queue items with optional status filter.
+- `POST /api/goatmez/approvals/:id/approve`
+  - Marks an approval item as approved.
+- `POST /api/goatmez/approvals/:id/reject`
+  - Marks an approval item as rejected.
 
 ## API startup for validation
 

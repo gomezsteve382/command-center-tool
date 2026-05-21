@@ -99,6 +99,25 @@ async function main() {
     assert(replay.ok === true, "session replay summary failed");
   }
 
+  const approvals = await request("/api/goatmez/approvals?status=pending");
+  assert(approvals.ok === true, "approvals endpoint must be ok");
+  assert(Array.isArray(approvals.approvals), "approvals list missing");
+  if (approvals.approvals.length > 0 && approvals.approvals[0]?.id) {
+    const approvalId = approvals.approvals[0].id;
+    const approved = await request(`/api/goatmez/approvals/${approvalId}/approve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    assert(approved.ok === true, "approve action failed");
+    const rejected = await request(`/api/goatmez/approvals/${approvalId}/reject`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    assert(rejected.ok === true, "reject action failed");
+  }
+
   console.log("[goatmez-validate] ok");
   console.log(
     JSON.stringify(

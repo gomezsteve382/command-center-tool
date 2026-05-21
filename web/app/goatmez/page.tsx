@@ -51,6 +51,7 @@ export default function GoatmezPage() {
   const [conflictRules, setConflictRules] = useState<AnyRecord[]>([]);
   const [rules, setRules] = useState<AnyRecord[]>([]);
   const [sessions, setSessions] = useState<AnyRecord[]>([]);
+  const [approvals, setApprovals] = useState<AnyRecord[]>([]);
   const [runOutput, setRunOutput] = useState("");
   const [missionInput, setMissionInput] = useState("inspect this workspace");
   const [kbQuery, setKbQuery] = useState("dashboard");
@@ -69,17 +70,19 @@ export default function GoatmezPage() {
   const [connectorCheckId, setConnectorCheckId] = useState("openai");
   const [connectorDiagnosticsResult, setConnectorDiagnosticsResult] = useState<AnyRecord>({});
   const [connectorVerifyResult, setConnectorVerifyResult] = useState<AnyRecord>({});
+  const [approvalFilter, setApprovalFilter] = useState("pending");
 
   const refresh = async () => {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, cfg, conflicts, diag, metricsPayload, activityPayload, permDiag] = await Promise.all([
+      const [h, o, c, r, s, a, cfg, conflicts, diag, metricsPayload, activityPayload, permDiag] = await Promise.all([
         api("health"),
         api("observability"),
         api(`connectors?agentId=${encodeURIComponent(connectorAgentId)}`),
         api("permissions/rules"),
         api("sessions"),
+        api(`approvals?status=${encodeURIComponent(approvalFilter)}`),
         api("config"),
         api("conflicts"),
         api("diagnostics"),
@@ -92,6 +95,7 @@ export default function GoatmezPage() {
       setConnectors(Array.isArray(c) ? c : []);
       setRules(Array.isArray(r) ? r : []);
       setSessions(Array.isArray(s) ? s : []);
+      setApprovals((a && Array.isArray(a.approvals)) ? a.approvals as AnyRecord[] : []);
       setConfigReport((cfg && typeof cfg.config === "object" && cfg.config) ? cfg.config as AnyRecord : {});
       setConflictRules((conflicts && Array.isArray(conflicts.rules)) ? conflicts.rules as AnyRecord[] : []);
       setDiagnostics((diag && typeof diag === "object") ? diag as AnyRecord : {});
@@ -467,6 +471,67 @@ export default function GoatmezPage() {
               ))}
               {!sessions.length && !loading && <p className="text-surface-500">No session records yet.</p>}
               {loading && <p className="text-surface-500">Loading...</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          {card("Approval Queue", (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <select
+                  value={approvalFilter}
+                  onChange={(event) => setApprovalFilter(event.target.value)}
+                  className="rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+                >
+                  <option value="pending">pending</option>
+                  <option value="approved">approved</option>
+                  <option value="rejected">rejected</option>
+                  <option value="executed">executed</option>
+                  <option value="failed">failed</option>
+                </select>
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    const payload = await api(`approvals?status=${encodeURIComponent(approvalFilter)}`);
+                    setApprovals((payload && Array.isArray(payload.approvals)) ? payload.approvals : []);
+                  }}
+                >
+                  Refresh Queue
+                </button>
+              </div>
+              <div className="space-y-2 max-h-[280px] overflow-auto">
+                {approvals.map((approval) => (
+                  <div key={String(approval.id)} className="rounded border border-surface-700 p-2">
+                    <div className="font-medium">{String(approval.toolName || approval.id)}</div>
+                    <div className="text-surface-400">{String(approval.status)} | mission={String(approval.missionId || "")}</div>
+                    <p className="text-surface-500 mt-1">{String(approval.reason || "")}</p>
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        className="rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                        onClick={async () => {
+                          await api(`approvals/${String(approval.id)}/approve`, { method: "POST", body: "{}" });
+                          const payload = await api(`approvals?status=${encodeURIComponent(approvalFilter)}`);
+                          setApprovals((payload && Array.isArray(payload.approvals)) ? payload.approvals : []);
+                        }}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        className="rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                        onClick={async () => {
+                          await api(`approvals/${String(approval.id)}/reject`, { method: "POST", body: "{}" });
+                          const payload = await api(`approvals?status=${encodeURIComponent(approvalFilter)}`);
+                          setApprovals((payload && Array.isArray(payload.approvals)) ? payload.approvals : []);
+                        }}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {!approvals.length && <p className="text-surface-500">No approvals in this filter.</p>}
               </div>
             </div>
           ))}

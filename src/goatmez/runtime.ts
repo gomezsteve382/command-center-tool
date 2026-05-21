@@ -16,6 +16,7 @@ import {
 import { GoatmezStateStore, GoatmezVaultStore, emptyGoatmezState } from "./storage.js";
 import type {
   GoatmezApprovalRecord,
+  GoatmezApprovalStatus,
   GoatmezConnectorProfile,
   GoatmezMissionRecord,
   GoatmezPermissionRule,
@@ -246,6 +247,25 @@ export class GoatmezRuntime {
   getSessionById(sessionId: string): GoatmezSessionRecord | null {
     const state = this.ensureState();
     return state.sessions.find((session) => session.id === sessionId) || null;
+  }
+
+  listApprovals(status?: GoatmezApprovalStatus): GoatmezApprovalRecord[] {
+    const state = this.ensureState();
+    const approvals = status ? state.approvals.filter((item) => item.status === status) : state.approvals;
+    return approvals.slice(0, 200);
+  }
+
+  setApprovalStatus(
+    approvalId: string,
+    status: Extract<GoatmezApprovalStatus, "approved" | "rejected" | "executed" | "failed">
+  ): GoatmezApprovalRecord | null {
+    const state = this.ensureState();
+    const approval = state.approvals.find((item) => item.id === approvalId);
+    if (!approval) return null;
+    approval.status = status;
+    approval.updatedAt = new Date().toISOString();
+    this.stateStore.write(state);
+    return approval;
   }
 
   replaySessionSummary(sessionId: string): Record<string, unknown> | null {

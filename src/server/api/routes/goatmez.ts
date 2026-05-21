@@ -152,6 +152,32 @@ export function createGoatmezRouter(): express.Router {
     res.json(state.sessions.slice(0, 100));
   });
 
+  router.get("/approvals", auth, (req: Request, res: Response) => {
+    const status = typeof req.query?.status === "string" ? req.query.status : undefined;
+    const validStatus = status === "pending" || status === "approved" || status === "rejected" || status === "executed" || status === "failed"
+      ? status
+      : undefined;
+    res.json({ ok: true, approvals: runtime.listApprovals(validStatus) });
+  });
+
+  router.post("/approvals/:id/approve", auth, limit, (req: Request, res: Response) => {
+    const updated = runtime.setApprovalStatus(req.params.id, "approved");
+    if (!updated) {
+      res.status(404).json({ ok: false, error: "approval not found" });
+      return;
+    }
+    res.json({ ok: true, approval: updated });
+  });
+
+  router.post("/approvals/:id/reject", auth, limit, (req: Request, res: Response) => {
+    const updated = runtime.setApprovalStatus(req.params.id, "rejected");
+    if (!updated) {
+      res.status(404).json({ ok: false, error: "approval not found" });
+      return;
+    }
+    res.json({ ok: true, approval: updated });
+  });
+
   router.post("/sessions/search", auth, (req: Request, res: Response) => {
     const query = typeof req.body?.query === "string" ? req.body.query.toLowerCase().trim() : "";
     const state = runtime.readState();
