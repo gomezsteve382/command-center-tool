@@ -16,6 +16,7 @@ import {
 import { GoatmezStateStore, GoatmezVaultStore, emptyGoatmezState } from "./storage.js";
 import type {
   GoatmezApprovalRecord,
+  GoatmezConnectorProfile,
   GoatmezMissionRecord,
   GoatmezPermissionRule,
   GoatmezRunInput,
@@ -297,22 +298,60 @@ export class GoatmezRuntime {
     };
   }
 
-  connectorsStatus(): Array<Record<string, unknown>> {
+  private evaluateConnector(connector: GoatmezConnectorProfile, agentId = "operator"): Record<string, unknown> {
+    const missing = connector.requiredSecrets.filter((secretName) => !this.vault.resolve(secretName, connector.id));
+    const allowedForAgent = connector.allowedAgents.length === 0 || connector.allowedAgents.includes(agentId);
+    const ready = connector.enabled && missing.length === 0;
+    const failureReasons: string[] = [];
+    if (!connector.enabled) failureReasons.push("connector-disabled");
+    if (missing.length) failureReasons.push(`missing-secrets:${missing.join(",")}`);
+    if (!allowedForAgent) failureReasons.push(`agent-not-allowed:${agentId}`);
+    if (!failureReasons.length) failureReasons.push("none");
+    return {
+      id: connector.id,
+      name: connector.name,
+      type: connector.type,
+      enabled: connector.enabled,
+      ready,
+      missingSecrets: missing,
+      riskLevel: connector.riskLevel,
+      allowedAgents: connector.allowedAgents,
+      allowedForAgent,
+      description: connector.description,
+      failureReasons
+    };
+  }
+
+  connectorsStatus(agentId = "operator"): Array<Record<string, unknown>> {
     const connectors = readConnectorProfiles(this.config);
-    return connectors.map((connector) => {
-      const missing = connector.requiredSecrets.filter((secretName) => !this.vault.resolve(secretName, connector.id));
-      return {
-        id: connector.id,
-        name: connector.name,
-        type: connector.type,
-        enabled: connector.enabled,
-        ready: connector.enabled ? missing.length === 0 : false,
-        missingSecrets: missing,
-        riskLevel: connector.riskLevel,
-        allowedAgents: connector.allowedAgents,
-        description: connector.description
-      };
-    });
+    return connectors.map((connector) => this.evaluateConnector(connector, agentId));
+  }
+
+  connectorDiagnostics(connectorId: string, agentId = "operator"): Record<string, unknown> | null {
+    const connectors = readConnectorProfiles(this.config);
+    const connector = connectors.find((item) => item.id === connectorId);
+    if (!connector) return null;
+    return {
+      ok: true,
+      generatedAt: new Date().toISOString(),
+      connector: this.evaluateConnector(connector, agentId),
+      agentId
+    };
+  }
+
+  verifyConnectorDryRun(connectorId: string, agentId = "operator"): Record<string, unknown> | null {
+    const diagnostics = this.connectorDiagnostics(connectorId, agentId);
+    if (!diagnostics) return null;
+    const connector = diagnostics.connector as Record<string, unknown>;
+    const ready = connector.ready === true;
+    return {
+      ok: true,
+      connectorId,
+      agentId,
+      dryRun: true,
+      verdict: ready ? "ready-for-execution-gate" : "blocked",
+      details: diagnostics
+    };
   }
 
   health(): Record<string, unknown> {

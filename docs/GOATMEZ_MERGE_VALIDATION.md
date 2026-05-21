@@ -28,6 +28,12 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Evaluates multiple tool names against current permission rules in one call.
 - `POST /api/goatmez/sessions/:id/replay-summary`
   - Returns replay-safe mission/session summary payload for operator review.
+- `GET /api/goatmez/connectors/diagnostics?agentId=operator`
+  - Returns per-agent connector diagnostics and failure reasons.
+- `POST /api/goatmez/connectors/:id/verify-dry-run`
+  - Runs a non-destructive connector verification verdict for the selected agent.
+- `POST /api/goatmez/mcp/reload`
+  - Refreshes MCP diagnostics from `.mcp.json` without executing connector actions.
 
 ## API startup for validation
 

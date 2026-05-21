@@ -64,6 +64,10 @@ export default function GoatmezPage() {
   const [newRuleDescription, setNewRuleDescription] = useState("Workflow actions require approval.");
   const [sessionSearchInput, setSessionSearchInput] = useState("inspect");
   const [sessionReplayPreview, setSessionReplayPreview] = useState<AnyRecord>({});
+  const [connectorAgentId, setConnectorAgentId] = useState("operator");
+  const [connectorCheckId, setConnectorCheckId] = useState("openai");
+  const [connectorDiagnosticsResult, setConnectorDiagnosticsResult] = useState<AnyRecord>({});
+  const [connectorVerifyResult, setConnectorVerifyResult] = useState<AnyRecord>({});
 
   const refresh = async () => {
     setLoading(true);
@@ -72,7 +76,7 @@ export default function GoatmezPage() {
       const [h, o, c, r, s, cfg, conflicts, diag, metricsPayload, permDiag] = await Promise.all([
         api("health"),
         api("observability"),
-        api("connectors"),
+        api(`connectors?agentId=${encodeURIComponent(connectorAgentId)}`),
         api("permissions/rules"),
         api("sessions"),
         api("config"),
@@ -140,6 +144,52 @@ export default function GoatmezPage() {
           {card("Connector Readiness", (
             <div className="space-y-2">
               <p className="text-surface-400">Ready: {readiness}</p>
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-2">
+                <input
+                  value={connectorAgentId}
+                  onChange={(event) => setConnectorAgentId(event.target.value)}
+                  className="rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+                />
+                <input
+                  value={connectorCheckId}
+                  onChange={(event) => setConnectorCheckId(event.target.value)}
+                  className="rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+                />
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    const payload = await api(`connectors/${encodeURIComponent(connectorCheckId)}/diagnostics?agentId=${encodeURIComponent(connectorAgentId)}`);
+                    setConnectorDiagnosticsResult(payload);
+                  }}
+                >
+                  Inspect
+                </button>
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    const payload = await api(`connectors/${encodeURIComponent(connectorCheckId)}/verify-dry-run`, {
+                      method: "POST",
+                      body: JSON.stringify({ agentId: connectorAgentId })
+                    });
+                    setConnectorVerifyResult(payload);
+                  }}
+                >
+                  Verify Dry Run
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    await api("mcp/reload", { method: "POST", body: "{}" });
+                    await refresh();
+                  }}
+                >
+                  Reload MCP
+                </button>
+              </div>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap">{JSON.stringify(connectorDiagnosticsResult, null, 2)}</pre>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap">{JSON.stringify(connectorVerifyResult, null, 2)}</pre>
               {connectors.map((connector) => (
                 <div key={String(connector.id)} className="rounded border border-surface-700 p-2">
                   <div className="font-medium">{String(connector.name || connector.id)}</div>
@@ -147,6 +197,7 @@ export default function GoatmezPage() {
                     type={String(connector.type)} | enabled={String(connector.enabled)} | ready={String(connector.ready)}
                   </div>
                   <div className="text-surface-500 mt-1">missing: {Array.isArray(connector.missingSecrets) ? connector.missingSecrets.join(", ") || "none" : "none"}</div>
+                  <div className="text-surface-500 mt-1">failures: {Array.isArray(connector.failureReasons) ? connector.failureReasons.join(", ") : "none"}</div>
                 </div>
               ))}
             </div>

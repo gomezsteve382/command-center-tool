@@ -25,6 +25,14 @@ export function createGoatmezRouter(): express.Router {
     res.json(runtime.diagnosticsSnapshot());
   });
 
+  router.get("/mcp/diagnostics", auth, (_req: Request, res: Response) => {
+    res.json({ ok: true, mcp: runtime.diagnosticsSnapshot().mcp });
+  });
+
+  router.post("/mcp/reload", auth, limit, (_req: Request, res: Response) => {
+    res.json({ ok: true, mcp: runtime.diagnosticsSnapshot().mcp, reloadedAt: new Date().toISOString() });
+  });
+
   router.get("/metrics", auth, (_req: Request, res: Response) => {
     res.json(runtime.metricsSnapshot());
   });
@@ -48,8 +56,38 @@ export function createGoatmezRouter(): express.Router {
     res.json(runtime.observabilitySnapshot());
   });
 
-  router.get("/connectors", auth, (_req: Request, res: Response) => {
-    res.json(runtime.connectorsStatus());
+  router.get("/connectors", auth, (req: Request, res: Response) => {
+    const agentId = typeof req.query?.agentId === "string" ? req.query.agentId : "operator";
+    res.json(runtime.connectorsStatus(agentId));
+  });
+
+  router.get("/connectors/diagnostics", auth, (req: Request, res: Response) => {
+    const agentId = typeof req.query?.agentId === "string" ? req.query.agentId : "operator";
+    res.json({
+      ok: true,
+      agentId,
+      connectors: runtime.connectorsStatus(agentId)
+    });
+  });
+
+  router.get("/connectors/:id/diagnostics", auth, (req: Request, res: Response) => {
+    const agentId = typeof req.query?.agentId === "string" ? req.query.agentId : "operator";
+    const output = runtime.connectorDiagnostics(req.params.id, agentId);
+    if (!output) {
+      res.status(404).json({ ok: false, error: "connector not found" });
+      return;
+    }
+    res.json(output);
+  });
+
+  router.post("/connectors/:id/verify-dry-run", auth, limit, (req: Request, res: Response) => {
+    const agentId = typeof req.body?.agentId === "string" ? req.body.agentId : "operator";
+    const output = runtime.verifyConnectorDryRun(req.params.id, agentId);
+    if (!output) {
+      res.status(404).json({ ok: false, error: "connector not found" });
+      return;
+    }
+    res.json(output);
   });
 
   router.get("/permissions/rules", auth, (_req: Request, res: Response) => {

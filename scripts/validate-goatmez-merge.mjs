@@ -42,6 +42,17 @@ async function main() {
   const metrics = await request("/api/goatmez/metrics");
   assert(metrics.ok === true, "metrics.ok must be true");
 
+  const connectorDiagnostics = await request("/api/goatmez/connectors/diagnostics?agentId=operator");
+  assert(connectorDiagnostics.ok === true, "connector diagnostics must be ok");
+  assert(Array.isArray(connectorDiagnostics.connectors), "connector diagnostics list missing");
+
+  const mcpReload = await request("/api/goatmez/mcp/reload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}"
+  });
+  assert(mcpReload.ok === true, "mcp reload dry action failed");
+
   const permissionDiagnostics = await request("/api/goatmez/permissions/diagnostics");
   assert(permissionDiagnostics.ok === true, "permission diagnostics must be ok");
 
@@ -58,6 +69,13 @@ async function main() {
     body: JSON.stringify({ agentId: "operator", toolNames: ["connector.http.request", "kb.search"] })
   });
   assert(simulation.ok === true, "permissions simulate failed");
+
+  const verify = await request("/api/goatmez/connectors/openai/verify-dry-run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ agentId: "operator" })
+  });
+  assert(verify.ok === true, "connector verify dry-run failed");
 
   const knowledge = await request("/api/goatmez/knowledge/search", {
     method: "POST",
@@ -86,6 +104,7 @@ async function main() {
         connectorSummary: observability.connectors,
         mcpSummary: diagnostics.mcp,
         queueMetrics: metrics.queue,
+        connectorDiagnostics: connectorDiagnostics.connectors.length,
         permissionSummary: permissionDiagnostics.decisionSummary,
         simulationCount: simulation.evaluatedCount,
         conflictRules: conflicts.rules.length,
