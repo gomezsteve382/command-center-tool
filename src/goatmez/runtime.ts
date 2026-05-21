@@ -374,6 +374,21 @@ export class GoatmezRuntime {
     };
   }
 
+  connectorVerificationMatrix(agentIds: string[]): Record<string, unknown> {
+    const normalizedAgents = [...new Set(agentIds.map((item) => item.trim()).filter(Boolean))];
+    const agents = normalizedAgents.length ? normalizedAgents : ["operator", "developer"];
+    const matrix = agents.map((agentId) => ({
+      agentId,
+      connectors: this.connectorsStatus(agentId)
+    }));
+    return {
+      ok: true,
+      generatedAt: new Date().toISOString(),
+      agents,
+      matrix
+    };
+  }
+
   health(): Record<string, unknown> {
     const state = this.ensureState();
     return {

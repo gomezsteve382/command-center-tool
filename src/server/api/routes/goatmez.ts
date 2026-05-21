@@ -75,6 +75,12 @@ export function createGoatmezRouter(): express.Router {
     });
   });
 
+  router.get("/connectors/matrix", auth, (req: Request, res: Response) => {
+    const raw = typeof req.query?.agents === "string" ? req.query.agents : "operator,developer";
+    const agents = raw.split(",").map((item) => item.trim()).filter(Boolean);
+    res.json(runtime.connectorVerificationMatrix(agents));
+  });
+
   router.get("/connectors/:id/diagnostics", auth, (req: Request, res: Response) => {
     const agentId = typeof req.query?.agentId === "string" ? req.query.agentId : "operator";
     const output = runtime.connectorDiagnostics(req.params.id, agentId);

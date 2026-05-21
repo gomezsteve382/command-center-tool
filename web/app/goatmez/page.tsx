@@ -47,6 +47,7 @@ export default function GoatmezPage() {
   const [diagnostics, setDiagnostics] = useState<AnyRecord>({});
   const [metrics, setMetrics] = useState<AnyRecord>({});
   const [activity, setActivity] = useState<AnyRecord>({});
+  const [connectorMatrix, setConnectorMatrix] = useState<AnyRecord>({});
   const [configReport, setConfigReport] = useState<AnyRecord>({});
   const [conflictRules, setConflictRules] = useState<AnyRecord[]>([]);
   const [rules, setRules] = useState<AnyRecord[]>([]);
@@ -76,7 +77,7 @@ export default function GoatmezPage() {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, a, cfg, conflicts, diag, metricsPayload, activityPayload, permDiag] = await Promise.all([
+      const [h, o, c, r, s, a, cfg, conflicts, diag, metricsPayload, activityPayload, matrixPayload, permDiag] = await Promise.all([
         api("health"),
         api("observability"),
         api(`connectors?agentId=${encodeURIComponent(connectorAgentId)}`),
@@ -88,6 +89,7 @@ export default function GoatmezPage() {
         api("diagnostics"),
         api("metrics"),
         api("activity/recent?limit=20"),
+        api("connectors/matrix?agents=operator,developer"),
         api("permissions/diagnostics")
       ]);
       setHealth(h);
@@ -101,6 +103,7 @@ export default function GoatmezPage() {
       setDiagnostics((diag && typeof diag === "object") ? diag as AnyRecord : {});
       setMetrics((metricsPayload && typeof metricsPayload === "object") ? metricsPayload as AnyRecord : {});
       setActivity((activityPayload && typeof activityPayload === "object") ? activityPayload as AnyRecord : {});
+      setConnectorMatrix((matrixPayload && typeof matrixPayload === "object") ? matrixPayload as AnyRecord : {});
       setPermissionDiagnostics((permDiag && typeof permDiag === "object") ? permDiag as AnyRecord : {});
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -220,6 +223,12 @@ export default function GoatmezPage() {
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
           {card("Recent Activity", (
             <pre className="whitespace-pre-wrap break-all">{JSON.stringify(activity, null, 2)}</pre>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          {card("Connector Matrix", (
+            <pre className="whitespace-pre-wrap break-all">{JSON.stringify(connectorMatrix, null, 2)}</pre>
           ))}
         </div>
 

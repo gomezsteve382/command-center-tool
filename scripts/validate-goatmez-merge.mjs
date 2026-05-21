@@ -46,6 +46,10 @@ async function main() {
   assert(connectorDiagnostics.ok === true, "connector diagnostics must be ok");
   assert(Array.isArray(connectorDiagnostics.connectors), "connector diagnostics list missing");
 
+  const connectorMatrix = await request("/api/goatmez/connectors/matrix?agents=operator,developer");
+  assert(connectorMatrix.ok === true, "connector matrix must be ok");
+  assert(Array.isArray(connectorMatrix.matrix), "connector matrix rows missing");
+
   const activity = await request("/api/goatmez/activity/recent?limit=10");
   assert(activity.ok === true, "activity feed must be ok");
   assert(Array.isArray(activity.items), "activity feed items missing");
@@ -128,6 +132,7 @@ async function main() {
         mcpSummary: diagnostics.mcp,
         queueMetrics: metrics.queue,
         connectorDiagnostics: connectorDiagnostics.connectors.length,
+        connectorMatrixAgents: connectorMatrix.agents,
         activityCount: activity.items.length,
         permissionSummary: permissionDiagnostics.decisionSummary,
         simulationCount: simulation.evaluatedCount,

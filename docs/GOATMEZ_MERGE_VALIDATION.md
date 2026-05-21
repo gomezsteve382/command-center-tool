@@ -42,6 +42,8 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Marks an approval item as approved.
 - `POST /api/goatmez/approvals/:id/reject`
   - Marks an approval item as rejected.
+- `GET /api/goatmez/connectors/matrix?agents=operator,developer`
+  - Returns connector readiness/allowlist matrix for multiple agents.
 
 ## API startup for validation
 
