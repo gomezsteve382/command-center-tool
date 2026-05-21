@@ -14,7 +14,11 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
 
 3. Combined stack check:
    - `npm run validate:goatmez-stack`
-   - Includes adapter-boundary coverage for legacy import mapping and env/config translation.
+   - Includes clean-room string scanning, adapter-boundary coverage for legacy import mapping, and env/config translation.
+
+4. Clean-room scan only:
+   - `npm run scan:goatmez-clean-room`
+   - Scans Goatmez-owned code paths for quarantined third-party ZIP/source references.
 
 ## Diagnostics endpoint
 
