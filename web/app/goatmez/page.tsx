@@ -56,7 +56,10 @@ export default function GoatmezPage() {
   const [sessions, setSessions] = useState<AnyRecord[]>([]);
   const [approvals, setApprovals] = useState<AnyRecord[]>([]);
   const [runOutput, setRunOutput] = useState("");
+  const [runSummary, setRunSummary] = useState<AnyRecord>({});
   const [missionInput, setMissionInput] = useState("inspect this workspace");
+  const [commandPreviewInput, setCommandPreviewInput] = useState("npm run typecheck:goatmez");
+  const [commandPreviewResult, setCommandPreviewResult] = useState<AnyRecord>({});
   const [kbQuery, setKbQuery] = useState("dashboard");
   const [kbResults, setKbResults] = useState<KnowledgeResult[]>([]);
   const [permissionTool, setPermissionTool] = useState("connector.http.request");
@@ -308,17 +311,44 @@ export default function GoatmezPage() {
               <button
                 className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
                 onClick={async () => {
-                  const payload = await api("run", { method: "POST", body: JSON.stringify({ message: missionInput }) });
-                  setRunOutput(payload.output || JSON.stringify(payload, null, 2));
+                  const payload = await api("operator/run-summary", { method: "POST", body: JSON.stringify({ message: missionInput }) });
+                  setRunSummary((payload && typeof payload.summary === "object" && payload.summary) ? payload.summary as AnyRecord : {});
+                  setRunOutput((payload && typeof payload.result?.output === "string") ? payload.result.output : JSON.stringify(payload, null, 2));
                   await refresh();
                 }}
               >
                 Execute Mission
               </button>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap">{JSON.stringify(runSummary, null, 2)}</pre>
               <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap">{runOutput || "No mission output yet."}</pre>
             </div>
           ))}
 
+          {card("Command Preview", (
+            <div className="space-y-2">
+              <input
+                value={commandPreviewInput}
+                onChange={(event) => setCommandPreviewInput(event.target.value)}
+                className="w-full rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+              />
+              <button
+                className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                onClick={async () => {
+                  const payload = await api("operator/command-preview", {
+                    method: "POST",
+                    body: JSON.stringify({ command: commandPreviewInput })
+                  });
+                  setCommandPreviewResult(payload);
+                }}
+              >
+                Preview
+              </button>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap">{JSON.stringify(commandPreviewResult, null, 2)}</pre>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {card("Knowledge Search (Hybrid)", (
             <div className="space-y-2">
               <input
