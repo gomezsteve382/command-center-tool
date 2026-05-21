@@ -144,3 +144,30 @@ export interface GoatmezRunResult {
   approvals: GoatmezApprovalRecord[];
   output: string;
 }
+
+export interface GoatmezOperatorRunSummary {
+  ok: boolean;
+  status: GoatmezMissionStatus;
+  message: string;
+  missionId: string;
+  taskId: string;
+  sessionId: string;
+  planner: string;
+  approvals: {
+    total: number;
+    pending: number;
+  };
+  toolCalls: number;
+  outputPreview: string[];
+  nextActions: string[];
+}
+
+export interface GoatmezCommandPreview {
+  ok: boolean;
+  command: string;
+  blocked: boolean;
+  risk: "low" | "medium" | "high";
+  classification: string;
+  reasons: string[];
+  preview: string;
+}

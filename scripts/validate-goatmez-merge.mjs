@@ -109,6 +109,22 @@ async function main() {
   });
   assert(verify.ok === true, "connector verify dry-run failed");
 
+  const runSummary = await request("/api/goatmez/operator/run-summary", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: "inspect this workspace" })
+  });
+  assert(runSummary.ok === true, "operator run summary failed");
+  assert(runSummary.summary && typeof runSummary.summary === "object", "operator run summary missing");
+
+  const commandPreview = await request("/api/goatmez/operator/command-preview", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ command: "npm run typecheck:goatmez" })
+  });
+  assert(commandPreview.ok === true, "operator command preview failed");
+  assert(commandPreview.blocked === false, "typecheck command preview should not be blocked");
+
   const knowledge = await request("/api/goatmez/knowledge/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -159,6 +175,8 @@ async function main() {
         connectorMatrixAgents: connectorMatrix.agents,
         activityCount: activity.items.length,
         plugins: pluginRegistry.total,
+        runSummaryStatus: runSummary.summary.status,
+        commandPreviewRisk: commandPreview.risk,
         permissionSummary: permissionDiagnostics.decisionSummary,
         simulationCount: simulation.evaluatedCount,
         conflictRules: conflicts.rules.length,

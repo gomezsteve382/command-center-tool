@@ -6,6 +6,7 @@ import { getGoatmezConflictRules } from "./conflicts.js";
 import { getMcpDiagnostics } from "./diagnostics.js";
 import { goatmezId } from "./id.js";
 import { ingestKnowledgeText, searchKnowledge } from "./knowledge.js";
+import { previewCommand, summarizeRunResult } from "./operatorUx.js";
 import {
   ensureDefaultPermissionRules,
   evaluatePermissionRule,
@@ -19,7 +20,9 @@ import type {
   GoatmezApprovalRecord,
   GoatmezApprovalStatus,
   GoatmezConnectorProfile,
+  GoatmezCommandPreview,
   GoatmezMissionRecord,
+  GoatmezOperatorRunSummary,
   GoatmezPermissionRule,
   GoatmezPluginRecord,
   GoatmezRunInput,
@@ -184,6 +187,18 @@ export class GoatmezRuntime {
     this.stateStore.write(state);
 
     return { mission, task, session, approvals, output };
+  }
+
+  runWithSummary(input: GoatmezRunInput): { result: GoatmezRunResult; summary: GoatmezOperatorRunSummary } {
+    const result = this.run(input);
+    return {
+      result,
+      summary: summarizeRunResult(result)
+    };
+  }
+
+  previewCommand(command: string): GoatmezCommandPreview {
+    return previewCommand(command);
   }
 
   addKnowledgeText(input: { title: string; text: string; tags?: string[]; source?: string }): { documentId: string; chunks: number } {

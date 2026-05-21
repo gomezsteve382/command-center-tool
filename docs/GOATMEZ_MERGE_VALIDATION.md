@@ -34,6 +34,10 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Enables a local Goatmez plugin registry record.
 - `POST /api/goatmez/plugins/:id/disable`
   - Disables a local Goatmez plugin registry record.
+- `POST /api/goatmez/operator/run-summary`
+  - Runs a mission and returns compact operator-facing summary metadata.
+- `POST /api/goatmez/operator/command-preview`
+  - Classifies a command preview before an operator runs it.
 - `POST /api/goatmez/sessions/:id/replay-summary`
   - Returns replay-safe mission/session summary payload for operator review.
 - `GET /api/goatmez/connectors/diagnostics?agentId=operator`

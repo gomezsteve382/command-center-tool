@@ -57,6 +57,23 @@ export function createGoatmezRouter(): express.Router {
     }
   });
 
+  router.post("/operator/run-summary", auth, limit, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const message = typeof req.body?.message === "string" ? req.body.message : "";
+      const dryRun = req.body?.dryRun === true;
+      const output = runtime.runWithSummary({ message, dryRun });
+      res.json({ ok: true, ...output });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/operator/command-preview", auth, (req: Request, res: Response) => {
+    const command = typeof req.body?.command === "string" ? req.body.command : "";
+    const preview = runtime.previewCommand(command);
+    res.status(preview.ok ? 200 : 400).json(preview);
+  });
+
   router.get("/observability", auth, (_req: Request, res: Response) => {
     res.json(runtime.observabilitySnapshot());
   });
