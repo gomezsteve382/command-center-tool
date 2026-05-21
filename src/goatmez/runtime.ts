@@ -3,6 +3,7 @@ import { basename, resolve } from "path";
 import { getGoatmezConfig, readConnectorProfiles } from "./config.js";
 import { importLegacyGoatmezData, getGoatmezConfigCompatibility } from "./compat.js";
 import { getGoatmezConflictRules } from "./conflicts.js";
+import { getMcpDiagnostics } from "./diagnostics.js";
 import { goatmezId } from "./id.js";
 import { ingestKnowledgeText, searchKnowledge } from "./knowledge.js";
 import { ensureDefaultPermissionRules, evaluatePermissionRule, validatePermissionPattern } from "./permissions.js";
@@ -291,6 +292,16 @@ export class GoatmezRuntime {
 
   conflictRules() {
     return getGoatmezConflictRules();
+  }
+
+  diagnosticsSnapshot(): Record<string, unknown> {
+    return {
+      ok: true,
+      generatedAt: new Date().toISOString(),
+      mcp: getMcpDiagnostics(this.config),
+      connectors: this.connectorsStatus(),
+      observability: this.observabilitySnapshot()
+    };
   }
 
   importLegacyNow(): { imported: boolean; notes: string[] } {

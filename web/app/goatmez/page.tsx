@@ -44,6 +44,7 @@ export default function GoatmezPage() {
   const [health, setHealth] = useState<AnyRecord>({});
   const [observability, setObservability] = useState<AnyRecord>({});
   const [connectors, setConnectors] = useState<AnyRecord[]>([]);
+  const [diagnostics, setDiagnostics] = useState<AnyRecord>({});
   const [configReport, setConfigReport] = useState<AnyRecord>({});
   const [conflictRules, setConflictRules] = useState<AnyRecord[]>([]);
   const [rules, setRules] = useState<AnyRecord[]>([]);
@@ -59,14 +60,15 @@ export default function GoatmezPage() {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, cfg, conflicts] = await Promise.all([
+      const [h, o, c, r, s, cfg, conflicts, diag] = await Promise.all([
         api("health"),
         api("observability"),
         api("connectors"),
         api("permissions/rules"),
         api("sessions"),
         api("config"),
-        api("conflicts")
+        api("conflicts"),
+        api("diagnostics")
       ]);
       setHealth(h);
       setObservability(o);
@@ -75,6 +77,7 @@ export default function GoatmezPage() {
       setSessions(Array.isArray(s) ? s : []);
       setConfigReport((cfg && typeof cfg.config === "object" && cfg.config) ? cfg.config as AnyRecord : {});
       setConflictRules((conflicts && Array.isArray(conflicts.rules)) ? conflicts.rules as AnyRecord[] : []);
+      setDiagnostics((diag && typeof diag === "object") ? diag as AnyRecord : {});
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -141,6 +144,12 @@ export default function GoatmezPage() {
           {card("Config Compatibility", (
             <pre className="whitespace-pre-wrap break-all">{JSON.stringify(configReport, null, 2)}</pre>
           ))}
+          {card("MCP Diagnostics", (
+            <pre className="whitespace-pre-wrap break-all">{JSON.stringify(diagnostics.mcp || {}, null, 2)}</pre>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
           {card("Conflict Rules", (
             <div className="space-y-2">
               {conflictRules.map((rule, index) => (

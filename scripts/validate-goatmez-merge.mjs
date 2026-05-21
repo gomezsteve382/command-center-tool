@@ -35,6 +35,10 @@ async function main() {
   assert(conflicts.ok === true, "conflicts.ok must be true");
   assert(Array.isArray(conflicts.rules), "conflict rules must be an array");
 
+  const diagnostics = await request("/api/goatmez/diagnostics");
+  assert(diagnostics.ok === true, "diagnostics.ok must be true");
+  assert(diagnostics.mcp && typeof diagnostics.mcp === "object", "diagnostics.mcp missing");
+
   const permissions = await request("/api/goatmez/permissions/dry-run", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,6 +61,7 @@ async function main() {
         healthState: health.state,
         queue: observability.queue,
         connectorSummary: observability.connectors,
+        mcpSummary: diagnostics.mcp,
         conflictRules: conflicts.rules.length,
         knowledgeResults: knowledge.results.length
       },

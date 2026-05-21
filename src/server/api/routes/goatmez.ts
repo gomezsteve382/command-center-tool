@@ -21,6 +21,10 @@ export function createGoatmezRouter(): express.Router {
     res.json({ ok: true, rules: runtime.conflictRules() });
   });
 
+  router.get("/diagnostics", auth, (_req: Request, res: Response) => {
+    res.json(runtime.diagnosticsSnapshot());
+  });
+
   router.post("/migrations/legacy", auth, limit, (_req: Request, res: Response) => {
     res.json({ ok: true, result: runtime.importLegacyNow() });
   });

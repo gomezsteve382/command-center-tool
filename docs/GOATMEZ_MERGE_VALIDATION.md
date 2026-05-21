@@ -16,6 +16,11 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
    - `npm run validate:goatmez-stack`
    - Includes adapter-boundary coverage for legacy import mapping and env/config translation.
 
+## Diagnostics endpoint
+
+- `GET /api/goatmez/diagnostics`
+  - Returns MCP config diagnostics, connector readiness snapshot, and observability summary.
+
 ## API startup for validation
 
 ```powershell
