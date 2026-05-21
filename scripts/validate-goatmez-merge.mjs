@@ -64,6 +64,30 @@ async function main() {
   const permissionDiagnostics = await request("/api/goatmez/permissions/diagnostics");
   assert(permissionDiagnostics.ok === true, "permission diagnostics must be ok");
 
+  const pluginList = await request("/api/goatmez/plugins");
+  assert(pluginList.ok === true, "plugin list must be ok");
+  assert(Array.isArray(pluginList.plugins), "plugin list missing");
+
+  const pluginRegistry = await request("/api/goatmez/plugins/registry");
+  assert(pluginRegistry.ok === true, "plugin registry must be ok");
+  assert(pluginRegistry.total >= pluginList.plugins.length, "plugin registry total mismatch");
+
+  const firstPlugin = pluginList.plugins[0];
+  if (firstPlugin?.id) {
+    const disabled = await request(`/api/goatmez/plugins/${firstPlugin.id}/disable`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    assert(disabled.ok === true, "plugin disable failed");
+    const enabled = await request(`/api/goatmez/plugins/${firstPlugin.id}/enable`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    assert(enabled.ok === true, "plugin enable failed");
+  }
+
   const permissions = await request("/api/goatmez/permissions/dry-run", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -134,6 +158,7 @@ async function main() {
         connectorDiagnostics: connectorDiagnostics.connectors.length,
         connectorMatrixAgents: connectorMatrix.agents,
         activityCount: activity.items.length,
+        plugins: pluginRegistry.total,
         permissionSummary: permissionDiagnostics.decisionSummary,
         simulationCount: simulation.evaluatedCount,
         conflictRules: conflicts.rules.length,

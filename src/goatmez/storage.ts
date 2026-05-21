@@ -12,7 +12,8 @@ export function emptyGoatmezState(): GoatmezStateSchema {
     sessions: [],
     permissionRules: [],
     knowledgeDocuments: [],
-    knowledgeChunks: []
+    knowledgeChunks: [],
+    plugins: []
   };
 }
 

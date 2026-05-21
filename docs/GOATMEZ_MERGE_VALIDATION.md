@@ -26,6 +26,14 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Returns wildcard/duplicate/overlap diagnostics for permission rules.
 - `POST /api/goatmez/permissions/simulate`
   - Evaluates multiple tool names against current permission rules in one call.
+- `GET /api/goatmez/plugins`
+  - Lists Goatmez-native plugin, skill, and adapter registry records.
+- `GET /api/goatmez/plugins/registry`
+  - Returns plugin registry totals, kind breakdowns, and registered tool hooks.
+- `POST /api/goatmez/plugins/:id/enable`
+  - Enables a local Goatmez plugin registry record.
+- `POST /api/goatmez/plugins/:id/disable`
+  - Disables a local Goatmez plugin registry record.
 - `POST /api/goatmez/sessions/:id/replay-summary`
   - Returns replay-safe mission/session summary payload for operator review.
 - `GET /api/goatmez/connectors/diagnostics?agentId=operator`

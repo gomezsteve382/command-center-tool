@@ -139,6 +139,33 @@ export function createGoatmezRouter(): express.Router {
     res.json(runtime.permissionDiagnostics());
   });
 
+  router.get("/plugins", auth, (req: Request, res: Response) => {
+    const kind = typeof req.query?.kind === "string" ? req.query.kind : undefined;
+    res.json({ ok: true, plugins: runtime.listPlugins(kind) });
+  });
+
+  router.get("/plugins/registry", auth, (_req: Request, res: Response) => {
+    res.json(runtime.pluginRegistrySnapshot());
+  });
+
+  router.post("/plugins/:id/enable", auth, limit, (req: Request, res: Response) => {
+    const plugin = runtime.setPluginEnabled(req.params.id, true);
+    if (!plugin) {
+      res.status(404).json({ ok: false, error: "plugin not found" });
+      return;
+    }
+    res.json({ ok: true, plugin });
+  });
+
+  router.post("/plugins/:id/disable", auth, limit, (req: Request, res: Response) => {
+    const plugin = runtime.setPluginEnabled(req.params.id, false);
+    if (!plugin) {
+      res.status(404).json({ ok: false, error: "plugin not found" });
+      return;
+    }
+    res.json({ ok: true, plugin });
+  });
+
   router.post("/permissions/simulate", auth, (req: Request, res: Response) => {
     const agentId = typeof req.body?.agentId === "string" ? req.body.agentId : "operator";
     const toolNames = Array.isArray(req.body?.toolNames)

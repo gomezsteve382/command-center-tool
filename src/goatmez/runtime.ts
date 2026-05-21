@@ -13,6 +13,7 @@ import {
   simulatePermissionRules,
   validatePermissionPattern
 } from "./permissions.js";
+import { ensureDefaultPlugins, pluginRegistrySnapshot } from "./plugins.js";
 import { GoatmezStateStore, GoatmezVaultStore, emptyGoatmezState } from "./storage.js";
 import type {
   GoatmezApprovalRecord,
@@ -20,6 +21,7 @@ import type {
   GoatmezConnectorProfile,
   GoatmezMissionRecord,
   GoatmezPermissionRule,
+  GoatmezPluginRecord,
   GoatmezRunInput,
   GoatmezRunResult,
   GoatmezSessionRecord,
@@ -53,7 +55,8 @@ function summarizeState(state: GoatmezStateSchema): Record<string, unknown> {
     approvals: state.approvals.length,
     sessions: state.sessions.length,
     knowledgeDocuments: state.knowledgeDocuments.length,
-    knowledgeChunks: state.knowledgeChunks.length
+    knowledgeChunks: state.knowledgeChunks.length,
+    plugins: state.plugins.length
   };
 }
 
@@ -102,6 +105,7 @@ export class GoatmezRuntime {
       }
     }
     state.permissionRules = ensureDefaultPermissionRules(state.permissionRules);
+    state.plugins = ensureDefaultPlugins(state.plugins);
     this.stateStore.write(state);
     return state;
   }
@@ -244,6 +248,29 @@ export class GoatmezRuntime {
     return permissionRuleDiagnostics(state.permissionRules);
   }
 
+  listPlugins(kind?: string): GoatmezPluginRecord[] {
+    const state = this.ensureState();
+    const plugins = kind
+      ? state.plugins.filter((plugin) => plugin.kind === kind)
+      : state.plugins;
+    return plugins.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  setPluginEnabled(id: string, enabled: boolean): GoatmezPluginRecord | null {
+    const state = this.ensureState();
+    const plugin = state.plugins.find((item) => item.id === id);
+    if (!plugin) return null;
+    plugin.enabled = enabled;
+    plugin.updatedAt = new Date().toISOString();
+    this.stateStore.write(state);
+    return plugin;
+  }
+
+  pluginRegistrySnapshot(): Record<string, unknown> {
+    const state = this.ensureState();
+    return pluginRegistrySnapshot(state.plugins);
+  }
+
   getSessionById(sessionId: string): GoatmezSessionRecord | null {
     const state = this.ensureState();
     return state.sessions.find((session) => session.id === sessionId) || null;
@@ -310,6 +337,10 @@ export class GoatmezRuntime {
       connectors: {
         total: connectors.length,
         enabled: connectors.filter((connector) => connector.enabled).length
+      },
+      plugins: {
+        total: state.plugins.length,
+        enabled: state.plugins.filter((plugin) => plugin.enabled).length
       },
       vault: {
         configured: this.vault.configured,
@@ -463,6 +494,11 @@ export class GoatmezRuntime {
         total: connectors.length,
         ready: connectors.filter((item) => item.ready).length,
         enabled: connectors.filter((item) => item.enabled).length
+      },
+      plugins: {
+        total: state.plugins.length,
+        enabled: state.plugins.filter((plugin) => plugin.enabled).length,
+        disabled: state.plugins.filter((plugin) => !plugin.enabled).length
       }
     };
   }

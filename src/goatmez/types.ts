@@ -101,6 +101,18 @@ export interface GoatmezConnectorProfile {
   description: string;
 }
 
+export interface GoatmezPluginRecord {
+  id: string;
+  name: string;
+  kind: "plugin" | "skill" | "adapter";
+  enabled: boolean;
+  source: string;
+  toolHooks: string[];
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface GoatmezStateSchema {
   version: 1;
   updatedAt: string;
@@ -111,6 +123,7 @@ export interface GoatmezStateSchema {
   permissionRules: GoatmezPermissionRule[];
   knowledgeDocuments: GoatmezKnowledgeDocument[];
   knowledgeChunks: GoatmezKnowledgeChunk[];
+  plugins: GoatmezPluginRecord[];
 }
 
 export interface GoatmezVaultSchema {

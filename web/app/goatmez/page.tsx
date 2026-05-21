@@ -48,6 +48,8 @@ export default function GoatmezPage() {
   const [metrics, setMetrics] = useState<AnyRecord>({});
   const [activity, setActivity] = useState<AnyRecord>({});
   const [connectorMatrix, setConnectorMatrix] = useState<AnyRecord>({});
+  const [plugins, setPlugins] = useState<AnyRecord[]>([]);
+  const [pluginRegistry, setPluginRegistry] = useState<AnyRecord>({});
   const [configReport, setConfigReport] = useState<AnyRecord>({});
   const [conflictRules, setConflictRules] = useState<AnyRecord[]>([]);
   const [rules, setRules] = useState<AnyRecord[]>([]);
@@ -77,7 +79,7 @@ export default function GoatmezPage() {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, a, cfg, conflicts, diag, metricsPayload, activityPayload, matrixPayload, permDiag] = await Promise.all([
+      const [h, o, c, r, s, a, cfg, conflicts, diag, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload] = await Promise.all([
         api("health"),
         api("observability"),
         api(`connectors?agentId=${encodeURIComponent(connectorAgentId)}`),
@@ -90,7 +92,9 @@ export default function GoatmezPage() {
         api("metrics"),
         api("activity/recent?limit=20"),
         api("connectors/matrix?agents=operator,developer"),
-        api("permissions/diagnostics")
+        api("permissions/diagnostics"),
+        api("plugins"),
+        api("plugins/registry")
       ]);
       setHealth(h);
       setObservability(o);
@@ -105,6 +109,8 @@ export default function GoatmezPage() {
       setActivity((activityPayload && typeof activityPayload === "object") ? activityPayload as AnyRecord : {});
       setConnectorMatrix((matrixPayload && typeof matrixPayload === "object") ? matrixPayload as AnyRecord : {});
       setPermissionDiagnostics((permDiag && typeof permDiag === "object") ? permDiag as AnyRecord : {});
+      setPlugins((pluginPayload && Array.isArray(pluginPayload.plugins)) ? pluginPayload.plugins as AnyRecord[] : []);
+      setPluginRegistry((pluginRegistryPayload && typeof pluginRegistryPayload === "object") ? pluginRegistryPayload as AnyRecord : {});
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -229,6 +235,41 @@ export default function GoatmezPage() {
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
           {card("Connector Matrix", (
             <pre className="whitespace-pre-wrap break-all">{JSON.stringify(connectorMatrix, null, 2)}</pre>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          {card("Plugin / Skill Registry", (
+            <div className="space-y-3">
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all">{JSON.stringify(pluginRegistry, null, 2)}</pre>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                {plugins.map((plugin) => (
+                  <div key={String(plugin.id)} className="rounded border border-surface-700 p-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-medium">{String(plugin.name || plugin.id)}</div>
+                        <div className="text-surface-400">{String(plugin.kind)} | enabled={String(plugin.enabled)}</div>
+                      </div>
+                      <button
+                        className="rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                        onClick={async () => {
+                          const action = plugin.enabled ? "disable" : "enable";
+                          await api(`plugins/${String(plugin.id)}/${action}`, { method: "POST", body: "{}" });
+                          await refresh();
+                        }}
+                      >
+                        {plugin.enabled ? "Disable" : "Enable"}
+                      </button>
+                    </div>
+                    <p className="text-surface-500 mt-2">{String(plugin.description || "")}</p>
+                    <div className="text-surface-500 mt-2">
+                      hooks: {Array.isArray(plugin.toolHooks) ? plugin.toolHooks.join(", ") : "none"}
+                    </div>
+                  </div>
+                ))}
+                {!plugins.length && <p className="text-surface-500">No plugin records loaded.</p>}
+              </div>
+            </div>
           ))}
         </div>
 
