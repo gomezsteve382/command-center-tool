@@ -113,6 +113,19 @@ export interface GoatmezPluginRecord {
   updatedAt: string;
 }
 
+export interface GoatmezModelProfile {
+  id: string;
+  name: string;
+  provider: "local" | "openai" | "custom";
+  enabled: boolean;
+  endpoint?: string;
+  requiredSecrets: string[];
+  capabilities: string[];
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface GoatmezStateSchema {
   version: 1;
   updatedAt: string;
@@ -124,6 +137,7 @@ export interface GoatmezStateSchema {
   knowledgeDocuments: GoatmezKnowledgeDocument[];
   knowledgeChunks: GoatmezKnowledgeChunk[];
   plugins: GoatmezPluginRecord[];
+  models: GoatmezModelProfile[];
 }
 
 export interface GoatmezVaultSchema {

@@ -106,6 +106,23 @@ async function main() {
   assert(pluginHookCheck.ok === true, "plugin hook check failed");
   assert(pluginHookCheck.active === true, "kb.search hook should be active");
 
+  const models = await request("/api/goatmez/models");
+  assert(models.ok === true, "models must be ok");
+  assert(Array.isArray(models.models), "model list missing");
+
+  const modelRegistry = await request("/api/goatmez/models/registry");
+  assert(modelRegistry.ok === true, "model registry must be ok");
+
+  const localModel = models.models.find((model) => model.provider === "local") || models.models[0];
+  if (localModel?.id) {
+    const modelVerify = await request(`/api/goatmez/models/${localModel.id}/verify-dry-run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    assert(modelVerify.ok === true, "model verify dry-run failed");
+  }
+
   const firstPlugin = pluginList.plugins[0];
   if (firstPlugin?.id) {
     const disabled = await request(`/api/goatmez/plugins/${firstPlugin.id}/disable`, {
@@ -211,6 +228,7 @@ async function main() {
         activityCount: activity.items.length,
         plugins: pluginRegistry.total,
         enabledPluginHooks: pluginHooks.enabledHooks.length,
+        models: modelRegistry.total,
         permissionRules: permissionRules.length,
         runSummaryStatus: runSummary.summary.status,
         commandPreviewRisk: commandPreview.risk,

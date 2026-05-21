@@ -6,6 +6,7 @@ import { getGoatmezConflictRules } from "./conflicts.js";
 import { getMcpDiagnostics, getMcpExplorer } from "./diagnostics.js";
 import { goatmezId } from "./id.js";
 import { ingestKnowledgeText, searchKnowledge } from "./knowledge.js";
+import { ensureDefaultModels, modelRegistrySnapshot } from "./models.js";
 import { previewCommand, summarizeRunResult } from "./operatorUx.js";
 import {
   ensureDefaultPermissionRules,
@@ -22,6 +23,7 @@ import type {
   GoatmezConnectorProfile,
   GoatmezCommandPreview,
   GoatmezMissionRecord,
+  GoatmezModelProfile,
   GoatmezOperatorRunSummary,
   GoatmezPermissionRule,
   GoatmezPluginRecord,
@@ -59,7 +61,8 @@ function summarizeState(state: GoatmezStateSchema): Record<string, unknown> {
     sessions: state.sessions.length,
     knowledgeDocuments: state.knowledgeDocuments.length,
     knowledgeChunks: state.knowledgeChunks.length,
-    plugins: state.plugins.length
+    plugins: state.plugins.length,
+    models: state.models.length
   };
 }
 
@@ -109,6 +112,7 @@ export class GoatmezRuntime {
     }
     state.permissionRules = ensureDefaultPermissionRules(state.permissionRules);
     state.plugins = ensureDefaultPlugins(state.plugins);
+    state.models = ensureDefaultModels(state.models);
     this.stateStore.write(state);
     return state;
   }
@@ -306,6 +310,43 @@ export class GoatmezRuntime {
     return checkPluginHook(state.plugins, hook);
   }
 
+  listModels(provider?: string): GoatmezModelProfile[] {
+    const state = this.ensureState();
+    const models = provider
+      ? state.models.filter((model) => model.provider === provider)
+      : state.models;
+    return [...models].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  modelRegistrySnapshot(): Record<string, unknown> {
+    const state = this.ensureState();
+    return modelRegistrySnapshot(state.models);
+  }
+
+  verifyModelDryRun(modelId: string): Record<string, unknown> | null {
+    const state = this.ensureState();
+    const model = state.models.find((item) => item.id === modelId);
+    if (!model) return null;
+    const missingSecrets = model.requiredSecrets.filter((secretName) => !this.vault.resolve(secretName, model.provider));
+    const endpointReady = !model.endpoint || model.endpoint.startsWith("${env:") || /^https?:\/\//i.test(model.endpoint);
+    const failureReasons: string[] = [];
+    if (!model.enabled) failureReasons.push("model-disabled");
+    if (missingSecrets.length) failureReasons.push(`missing-secrets:${missingSecrets.join(",")}`);
+    if (!endpointReady) failureReasons.push("invalid-endpoint");
+    if (!failureReasons.length) failureReasons.push("none");
+    return {
+      ok: true,
+      dryRun: true,
+      modelId: model.id,
+      provider: model.provider,
+      ready: model.enabled && missingSecrets.length === 0 && endpointReady,
+      missingSecrets,
+      endpointReady,
+      capabilities: model.capabilities,
+      failureReasons
+    };
+  }
+
   getSessionById(sessionId: string): GoatmezSessionRecord | null {
     const state = this.ensureState();
     return state.sessions.find((session) => session.id === sessionId) || null;
@@ -376,6 +417,10 @@ export class GoatmezRuntime {
       plugins: {
         total: state.plugins.length,
         enabled: state.plugins.filter((plugin) => plugin.enabled).length
+      },
+      models: {
+        total: state.models.length,
+        enabled: state.models.filter((model) => model.enabled).length
       },
       vault: {
         configured: this.vault.configured,
@@ -538,6 +583,11 @@ export class GoatmezRuntime {
         total: state.plugins.length,
         enabled: state.plugins.filter((plugin) => plugin.enabled).length,
         disabled: state.plugins.filter((plugin) => !plugin.enabled).length
+      },
+      models: {
+        total: state.models.length,
+        enabled: state.models.filter((model) => model.enabled).length,
+        disabled: state.models.filter((model) => !model.enabled).length
       }
     };
   }

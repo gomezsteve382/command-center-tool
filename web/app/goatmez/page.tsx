@@ -54,6 +54,9 @@ export default function GoatmezPage() {
   const [pluginHooks, setPluginHooks] = useState<AnyRecord>({});
   const [pluginHookInput, setPluginHookInput] = useState("kb.search");
   const [pluginHookCheck, setPluginHookCheck] = useState<AnyRecord>({});
+  const [models, setModels] = useState<AnyRecord[]>([]);
+  const [modelRegistry, setModelRegistry] = useState<AnyRecord>({});
+  const [modelVerifyResult, setModelVerifyResult] = useState<AnyRecord>({});
   const [configReport, setConfigReport] = useState<AnyRecord>({});
   const [conflictRules, setConflictRules] = useState<AnyRecord[]>([]);
   const [rules, setRules] = useState<AnyRecord[]>([]);
@@ -86,7 +89,7 @@ export default function GoatmezPage() {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, a, cfg, conflicts, diag, mcpExplorerPayload, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload] = await Promise.all([
+      const [h, o, c, r, s, a, cfg, conflicts, diag, mcpExplorerPayload, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload, modelPayload, modelRegistryPayload] = await Promise.all([
         api("health"),
         api("observability"),
         api(`connectors?agentId=${encodeURIComponent(connectorAgentId)}`),
@@ -103,7 +106,9 @@ export default function GoatmezPage() {
         api("permissions/diagnostics"),
         api("plugins"),
         api("plugins/registry"),
-        api("plugins/hooks")
+        api("plugins/hooks"),
+        api("models"),
+        api("models/registry")
       ]);
       setHealth(h);
       setObservability(o);
@@ -122,6 +127,8 @@ export default function GoatmezPage() {
       setPlugins((pluginPayload && Array.isArray(pluginPayload.plugins)) ? pluginPayload.plugins as AnyRecord[] : []);
       setPluginRegistry((pluginRegistryPayload && typeof pluginRegistryPayload === "object") ? pluginRegistryPayload as AnyRecord : {});
       setPluginHooks((pluginHooksPayload && typeof pluginHooksPayload === "object") ? pluginHooksPayload as AnyRecord : {});
+      setModels((modelPayload && Array.isArray(modelPayload.models)) ? modelPayload.models as AnyRecord[] : []);
+      setModelRegistry((modelRegistryPayload && typeof modelRegistryPayload === "object") ? modelRegistryPayload as AnyRecord : {});
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -300,6 +307,35 @@ export default function GoatmezPage() {
                   </div>
                 ))}
                 {!plugins.length && <p className="text-surface-500">No plugin records loaded.</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          {card("Model Registry", (
+            <div className="space-y-3">
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all">{JSON.stringify(modelRegistry, null, 2)}</pre>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all">{JSON.stringify(modelVerifyResult, null, 2)}</pre>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                {models.map((model) => (
+                  <div key={String(model.id)} className="rounded border border-surface-700 p-2">
+                    <div className="font-medium">{String(model.name || model.id)}</div>
+                    <div className="text-surface-400">{String(model.provider)} | enabled={String(model.enabled)}</div>
+                    <div className="text-surface-500 mt-1">capabilities: {Array.isArray(model.capabilities) ? model.capabilities.join(", ") : "none"}</div>
+                    <div className="text-surface-500 mt-1">secrets: {Array.isArray(model.requiredSecrets) ? model.requiredSecrets.join(", ") || "none" : "none"}</div>
+                    <button
+                      className="mt-2 rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                      onClick={async () => {
+                        const payload = await api(`models/${String(model.id)}/verify-dry-run`, { method: "POST", body: "{}" });
+                        setModelVerifyResult(payload);
+                      }}
+                    >
+                      Verify Dry Run
+                    </button>
+                  </div>
+                ))}
+                {!models.length && <p className="text-surface-500">No model profiles loaded.</p>}
               </div>
             </div>
           ))}

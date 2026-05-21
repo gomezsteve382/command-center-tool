@@ -48,6 +48,12 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Enables a local Goatmez plugin registry record.
 - `POST /api/goatmez/plugins/:id/disable`
   - Disables a local Goatmez plugin registry record.
+- `GET /api/goatmez/models`
+  - Lists local, hosted, and custom Goatmez model profiles.
+- `GET /api/goatmez/models/registry`
+  - Returns model registry totals, provider breakdown, and capabilities.
+- `POST /api/goatmez/models/:id/verify-dry-run`
+  - Checks model profile readiness without calling a model provider.
 - `POST /api/goatmez/operator/run-summary`
   - Runs a mission and returns compact operator-facing summary metadata.
 - `POST /api/goatmez/operator/command-preview`

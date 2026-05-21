@@ -215,6 +215,24 @@ export function createGoatmezRouter(): express.Router {
     res.json({ ok: true, plugin });
   });
 
+  router.get("/models", auth, (req: Request, res: Response) => {
+    const provider = typeof req.query?.provider === "string" ? req.query.provider : undefined;
+    res.json({ ok: true, models: runtime.listModels(provider) });
+  });
+
+  router.get("/models/registry", auth, (_req: Request, res: Response) => {
+    res.json(runtime.modelRegistrySnapshot());
+  });
+
+  router.post("/models/:id/verify-dry-run", auth, limit, (req: Request, res: Response) => {
+    const output = runtime.verifyModelDryRun(req.params.id);
+    if (!output) {
+      res.status(404).json({ ok: false, error: "model not found" });
+      return;
+    }
+    res.json(output);
+  });
+
   router.post("/permissions/simulate", auth, (req: Request, res: Response) => {
     const agentId = typeof req.body?.agentId === "string" ? req.body.agentId : "operator";
     const toolNames = Array.isArray(req.body?.toolNames)
