@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "app/goatmez/page.tsx",
+    "app/api/goatmez/[...path]/route.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

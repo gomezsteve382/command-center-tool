@@ -9,10 +9,12 @@ import { ensureDefaultPermissionRules, evaluatePermissionRule, validatePermissio
 import { GoatmezStateStore, GoatmezVaultStore, emptyGoatmezState } from "./storage.js";
 import type {
   GoatmezApprovalRecord,
+  GoatmezMissionRecord,
   GoatmezPermissionRule,
   GoatmezRunInput,
   GoatmezRunResult,
   GoatmezSessionRecord,
+  GoatmezTaskRecord,
   GoatmezStateSchema
 } from "./types.js";
 import { GoatmezVault } from "./vault.js";
@@ -103,19 +105,19 @@ export class GoatmezRuntime {
     const message = input.message.trim() || "inspect this workspace";
     const state = this.ensureState();
     const now = new Date().toISOString();
-    const task = {
+    const task: GoatmezTaskRecord = {
       id: goatmezId("task"),
       title: message,
-      status: "running" as const,
+      status: "running",
       notes: [`planner=${this.config.plannerProvider}`],
       createdAt: now,
       updatedAt: now
     };
-    const mission = {
+    const mission: GoatmezMissionRecord = {
       id: goatmezId("msn"),
       sessionId: goatmezId("sesskey"),
       message,
-      status: "running" as const,
+      status: "running",
       planner: this.config.plannerProvider,
       taskId: task.id,
       createdAt: now,
@@ -287,7 +289,7 @@ export class GoatmezRuntime {
     return getGoatmezConfigCompatibility(this.config);
   }
 
-  conflictRules(): Record<string, unknown>[] {
+  conflictRules() {
     return getGoatmezConflictRules();
   }
 
