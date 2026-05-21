@@ -54,6 +54,10 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Returns model registry totals, provider breakdown, and capabilities.
 - `POST /api/goatmez/models/:id/verify-dry-run`
   - Checks model profile readiness without calling a model provider.
+- `GET /api/goatmez/agents`
+  - Lists Goatmez autonomous agent profiles and allowlists.
+- `GET /api/goatmez/agents/matrix`
+  - Returns per-agent connector, plugin, and model capability visibility.
 - `POST /api/goatmez/operator/run-summary`
   - Runs a mission and returns compact operator-facing summary metadata.
 - `POST /api/goatmez/operator/command-preview`

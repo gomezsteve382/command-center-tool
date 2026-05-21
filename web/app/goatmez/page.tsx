@@ -57,6 +57,8 @@ export default function GoatmezPage() {
   const [models, setModels] = useState<AnyRecord[]>([]);
   const [modelRegistry, setModelRegistry] = useState<AnyRecord>({});
   const [modelVerifyResult, setModelVerifyResult] = useState<AnyRecord>({});
+  const [agents, setAgents] = useState<AnyRecord[]>([]);
+  const [agentMatrix, setAgentMatrix] = useState<AnyRecord>({});
   const [configReport, setConfigReport] = useState<AnyRecord>({});
   const [conflictRules, setConflictRules] = useState<AnyRecord[]>([]);
   const [rules, setRules] = useState<AnyRecord[]>([]);
@@ -89,7 +91,7 @@ export default function GoatmezPage() {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, a, cfg, conflicts, diag, mcpExplorerPayload, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload, modelPayload, modelRegistryPayload] = await Promise.all([
+      const [h, o, c, r, s, a, cfg, conflicts, diag, mcpExplorerPayload, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload, modelPayload, modelRegistryPayload, agentPayload, agentMatrixPayload] = await Promise.all([
         api("health"),
         api("observability"),
         api(`connectors?agentId=${encodeURIComponent(connectorAgentId)}`),
@@ -108,7 +110,9 @@ export default function GoatmezPage() {
         api("plugins/registry"),
         api("plugins/hooks"),
         api("models"),
-        api("models/registry")
+        api("models/registry"),
+        api("agents"),
+        api("agents/matrix")
       ]);
       setHealth(h);
       setObservability(o);
@@ -129,6 +133,8 @@ export default function GoatmezPage() {
       setPluginHooks((pluginHooksPayload && typeof pluginHooksPayload === "object") ? pluginHooksPayload as AnyRecord : {});
       setModels((modelPayload && Array.isArray(modelPayload.models)) ? modelPayload.models as AnyRecord[] : []);
       setModelRegistry((modelRegistryPayload && typeof modelRegistryPayload === "object") ? modelRegistryPayload as AnyRecord : {});
+      setAgents((agentPayload && Array.isArray(agentPayload.agents)) ? agentPayload.agents as AnyRecord[] : []);
+      setAgentMatrix((agentMatrixPayload && typeof agentMatrixPayload === "object") ? agentMatrixPayload as AnyRecord : {});
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -336,6 +342,26 @@ export default function GoatmezPage() {
                   </div>
                 ))}
                 {!models.length && <p className="text-surface-500">No model profiles loaded.</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          {card("Agent Capability Matrix", (
+            <div className="space-y-3">
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all">{JSON.stringify(agentMatrix, null, 2)}</pre>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                {agents.map((agent) => (
+                  <div key={String(agent.id)} className="rounded border border-surface-700 p-2">
+                    <div className="font-medium">{String(agent.name || agent.id)}</div>
+                    <div className="text-surface-400">{String(agent.role)} | {String(agent.autonomyLevel)} | enabled={String(agent.enabled)}</div>
+                    <p className="text-surface-500 mt-1">{String(agent.description || "")}</p>
+                    <div className="text-surface-500 mt-1">connectors: {Array.isArray(agent.allowedConnectors) ? agent.allowedConnectors.join(", ") || "none" : "none"}</div>
+                    <div className="text-surface-500 mt-1">models: {Array.isArray(agent.allowedModels) ? agent.allowedModels.join(", ") || "none" : "none"}</div>
+                  </div>
+                ))}
+                {!agents.length && <p className="text-surface-500">No agent profiles loaded.</p>}
               </div>
             </div>
           ))}

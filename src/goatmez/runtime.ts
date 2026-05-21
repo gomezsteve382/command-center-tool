@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import { basename, resolve } from "path";
+import { agentCapabilityMatrix, ensureDefaultAgents } from "./agents.js";
 import { getGoatmezConfig, readConnectorProfiles } from "./config.js";
 import { importLegacyGoatmezData, getGoatmezConfigCompatibility } from "./compat.js";
 import { getGoatmezConflictRules } from "./conflicts.js";
@@ -20,6 +21,7 @@ import { GoatmezStateStore, GoatmezVaultStore, emptyGoatmezState } from "./stora
 import type {
   GoatmezApprovalRecord,
   GoatmezApprovalStatus,
+  GoatmezAgentProfile,
   GoatmezConnectorProfile,
   GoatmezCommandPreview,
   GoatmezMissionRecord,
@@ -62,7 +64,8 @@ function summarizeState(state: GoatmezStateSchema): Record<string, unknown> {
     knowledgeDocuments: state.knowledgeDocuments.length,
     knowledgeChunks: state.knowledgeChunks.length,
     plugins: state.plugins.length,
-    models: state.models.length
+    models: state.models.length,
+    agents: state.agents.length
   };
 }
 
@@ -113,6 +116,7 @@ export class GoatmezRuntime {
     state.permissionRules = ensureDefaultPermissionRules(state.permissionRules);
     state.plugins = ensureDefaultPlugins(state.plugins);
     state.models = ensureDefaultModels(state.models);
+    state.agents = ensureDefaultAgents(state.agents);
     this.stateStore.write(state);
     return state;
   }
@@ -347,6 +351,25 @@ export class GoatmezRuntime {
     };
   }
 
+  listAgents(role?: string): GoatmezAgentProfile[] {
+    const state = this.ensureState();
+    const agents = role ? state.agents.filter((agent) => agent.role === role) : state.agents;
+    return [...agents].sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  agentCapabilityMatrix(): Record<string, unknown> {
+    const state = this.ensureState();
+    const connectors = state.agents.flatMap((agent) =>
+      this.connectorsStatus(agent.id).map((connector) => ({ ...connector, agentId: agent.id }))
+    );
+    return agentCapabilityMatrix({
+      agents: state.agents,
+      connectors,
+      plugins: state.plugins,
+      models: state.models
+    });
+  }
+
   getSessionById(sessionId: string): GoatmezSessionRecord | null {
     const state = this.ensureState();
     return state.sessions.find((session) => session.id === sessionId) || null;
@@ -421,6 +444,10 @@ export class GoatmezRuntime {
       models: {
         total: state.models.length,
         enabled: state.models.filter((model) => model.enabled).length
+      },
+      agents: {
+        total: state.agents.length,
+        enabled: state.agents.filter((agent) => agent.enabled).length
       },
       vault: {
         configured: this.vault.configured,
@@ -588,6 +615,14 @@ export class GoatmezRuntime {
         total: state.models.length,
         enabled: state.models.filter((model) => model.enabled).length,
         disabled: state.models.filter((model) => !model.enabled).length
+      },
+      agents: {
+        total: state.agents.length,
+        enabled: state.agents.filter((agent) => agent.enabled).length,
+        autonomyLevels: state.agents.reduce<Record<string, number>>((acc, agent) => {
+          acc[agent.autonomyLevel] = (acc[agent.autonomyLevel] || 0) + 1;
+          return acc;
+        }, {})
       }
     };
   }

@@ -126,6 +126,20 @@ export interface GoatmezModelProfile {
   updatedAt: string;
 }
 
+export interface GoatmezAgentProfile {
+  id: string;
+  name: string;
+  role: "operator" | "developer" | "researcher";
+  enabled: boolean;
+  autonomyLevel: "supervised" | "approval-gated" | "autonomous";
+  allowedConnectors: string[];
+  allowedPlugins: string[];
+  allowedModels: string[];
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface GoatmezStateSchema {
   version: 1;
   updatedAt: string;
@@ -138,6 +152,7 @@ export interface GoatmezStateSchema {
   knowledgeChunks: GoatmezKnowledgeChunk[];
   plugins: GoatmezPluginRecord[];
   models: GoatmezModelProfile[];
+  agents: GoatmezAgentProfile[];
 }
 
 export interface GoatmezVaultSchema {

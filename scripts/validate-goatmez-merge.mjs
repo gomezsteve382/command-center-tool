@@ -123,6 +123,14 @@ async function main() {
     assert(modelVerify.ok === true, "model verify dry-run failed");
   }
 
+  const agents = await request("/api/goatmez/agents");
+  assert(agents.ok === true, "agents must be ok");
+  assert(Array.isArray(agents.agents), "agent list missing");
+
+  const agentMatrix = await request("/api/goatmez/agents/matrix");
+  assert(agentMatrix.ok === true, "agent matrix must be ok");
+  assert(Array.isArray(agentMatrix.agents), "agent matrix rows missing");
+
   const firstPlugin = pluginList.plugins[0];
   if (firstPlugin?.id) {
     const disabled = await request(`/api/goatmez/plugins/${firstPlugin.id}/disable`, {
@@ -229,6 +237,7 @@ async function main() {
         plugins: pluginRegistry.total,
         enabledPluginHooks: pluginHooks.enabledHooks.length,
         models: modelRegistry.total,
+        agents: agents.agents.length,
         permissionRules: permissionRules.length,
         runSummaryStatus: runSummary.summary.status,
         commandPreviewRisk: commandPreview.risk,

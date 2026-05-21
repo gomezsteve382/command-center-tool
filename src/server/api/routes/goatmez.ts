@@ -233,6 +233,15 @@ export function createGoatmezRouter(): express.Router {
     res.json(output);
   });
 
+  router.get("/agents", auth, (req: Request, res: Response) => {
+    const role = typeof req.query?.role === "string" ? req.query.role : undefined;
+    res.json({ ok: true, agents: runtime.listAgents(role) });
+  });
+
+  router.get("/agents/matrix", auth, (_req: Request, res: Response) => {
+    res.json(runtime.agentCapabilityMatrix());
+  });
+
   router.post("/permissions/simulate", auth, (req: Request, res: Response) => {
     const agentId = typeof req.body?.agentId === "string" ? req.body.agentId : "operator";
     const toolNames = Array.isArray(req.body?.toolNames)
