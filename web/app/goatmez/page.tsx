@@ -43,6 +43,7 @@ export default function GoatmezPage() {
   const [error, setError] = useState("");
   const [health, setHealth] = useState<AnyRecord>({});
   const [observability, setObservability] = useState<AnyRecord>({});
+  const [readinessSnapshot, setReadinessSnapshot] = useState<AnyRecord>({});
   const [connectors, setConnectors] = useState<AnyRecord[]>([]);
   const [diagnostics, setDiagnostics] = useState<AnyRecord>({});
   const [mcpExplorer, setMcpExplorer] = useState<AnyRecord>({});
@@ -91,9 +92,10 @@ export default function GoatmezPage() {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, a, cfg, conflicts, diag, mcpExplorerPayload, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload, modelPayload, modelRegistryPayload, agentPayload, agentMatrixPayload] = await Promise.all([
+      const [h, o, readyPayload, c, r, s, a, cfg, conflicts, diag, mcpExplorerPayload, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload, modelPayload, modelRegistryPayload, agentPayload, agentMatrixPayload] = await Promise.all([
         api("health"),
         api("observability"),
+        api("readiness"),
         api(`connectors?agentId=${encodeURIComponent(connectorAgentId)}`),
         api("permissions/rules"),
         api("sessions"),
@@ -116,6 +118,7 @@ export default function GoatmezPage() {
       ]);
       setHealth(h);
       setObservability(o);
+      setReadinessSnapshot((readyPayload && typeof readyPayload === "object") ? readyPayload as AnyRecord : {});
       setConnectors(Array.isArray(c) ? c : []);
       setRules(Array.isArray(r) ? r : []);
       setSessions(Array.isArray(s) ? s : []);
@@ -241,6 +244,12 @@ export default function GoatmezPage() {
                 </div>
               ))}
             </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          {card("Readiness", (
+            <pre className="whitespace-pre-wrap break-all">{JSON.stringify(readinessSnapshot, null, 2)}</pre>
           ))}
         </div>
 

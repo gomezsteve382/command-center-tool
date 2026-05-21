@@ -27,6 +27,10 @@ async function main() {
   const observability = await request("/api/goatmez/observability");
   assert(observability.ok === true, "observability.ok must be true");
 
+  const readiness = await request("/api/goatmez/readiness");
+  assert(readiness.ok === true, "readiness.ok must be true");
+  assert(typeof readiness.verdict === "string", "readiness verdict missing");
+
   const config = await request("/api/goatmez/config");
   assert(config.ok === true, "config.ok must be true");
   assert(config.config && typeof config.config === "object", "config payload missing");
@@ -235,6 +239,7 @@ async function main() {
       {
         healthState: health.state,
         queue: observability.queue,
+        readinessVerdict: readiness.verdict,
         connectorSummary: observability.connectors,
         mcpSummary: diagnostics.mcp,
         mcpExplorerServers: mcpExplorer.servers.length,

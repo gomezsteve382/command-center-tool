@@ -488,6 +488,57 @@ export class GoatmezRuntime {
     };
   }
 
+  readinessSnapshot(): Record<string, unknown> {
+    const state = this.ensureState();
+    const connectorRows = this.connectorsStatus();
+    const mcp = getMcpDiagnostics(this.config);
+    const permissionDiagnostics = permissionRuleDiagnostics(state.permissionRules);
+    const modelRegistry = modelRegistrySnapshot(state.models);
+    const pluginRegistry = pluginRegistrySnapshot(state.plugins);
+    const pendingApprovals = state.approvals.filter((approval) => approval.status === "pending").length;
+    const blockedMissions = state.missions.filter((mission) => mission.status === "blocked").length;
+    const readyConnectors = connectorRows.filter((connector) => connector.ready).length;
+    const enabledModels = state.models.filter((model) => model.enabled).length;
+    const enabledAgents = state.agents.filter((agent) => agent.enabled).length;
+
+    const blockers: string[] = [];
+    if (pendingApprovals > 0) blockers.push(`pending-approvals:${pendingApprovals}`);
+    if (blockedMissions > 0) blockers.push(`blocked-missions:${blockedMissions}`);
+    if (readyConnectors === 0) blockers.push("no-ready-connectors");
+    if (enabledModels === 0) blockers.push("no-enabled-models");
+    if (enabledAgents === 0) blockers.push("no-enabled-agents");
+    if ((mcp as { parseError?: unknown }).parseError) blockers.push("mcp-config-parse-error");
+
+    return {
+      ok: true,
+      generatedAt: new Date().toISOString(),
+      verdict: blockers.length ? "attention-required" : "ready",
+      blockers,
+      queue: {
+        pendingApprovals,
+        blockedMissions,
+        runningMissions: state.missions.filter((mission) => mission.status === "running").length
+      },
+      connectors: {
+        total: connectorRows.length,
+        ready: readyConnectors,
+        enabled: connectorRows.filter((connector) => connector.enabled).length
+      },
+      mcp,
+      permissions: permissionDiagnostics,
+      plugins: pluginRegistry,
+      models: modelRegistry,
+      agents: {
+        total: state.agents.length,
+        enabled: enabledAgents
+      },
+      knowledge: {
+        documents: state.knowledgeDocuments.length,
+        chunks: state.knowledgeChunks.length
+      }
+    };
+  }
+
   private evaluateConnector(connector: GoatmezConnectorProfile, agentId = "operator"): Record<string, unknown> {
     const missing = connector.requiredSecrets.filter((secretName) => !this.vault.resolve(secretName, connector.id));
     const allowedForAgent = connector.allowedAgents.length === 0 || connector.allowedAgents.includes(agentId);

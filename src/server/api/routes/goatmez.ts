@@ -82,6 +82,10 @@ export function createGoatmezRouter(): express.Router {
     res.json(runtime.observabilitySnapshot());
   });
 
+  router.get("/readiness", auth, (_req: Request, res: Response) => {
+    res.json(runtime.readinessSnapshot());
+  });
+
   router.get("/connectors", auth, (req: Request, res: Response) => {
     const agentId = typeof req.query?.agentId === "string" ? req.query.agentId : "operator";
     res.json(runtime.connectorsStatus(agentId));
