@@ -14,6 +14,7 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
 
 3. Combined stack check:
    - `npm run validate:goatmez-stack`
+   - Includes adapter-boundary coverage for legacy import mapping and env/config translation.
 
 ## API startup for validation
 
