@@ -146,6 +146,24 @@ export function createGoatmezRouter(): express.Router {
     res.status(deleted ? 200 : 404).json({ ok: deleted });
   });
 
+  router.post("/permissions/rules/:id/enable", auth, limit, (req: Request, res: Response) => {
+    const rule = runtime.setPermissionRuleEnabled(req.params.id, true);
+    if (!rule) {
+      res.status(404).json({ ok: false, error: "permission rule not found" });
+      return;
+    }
+    res.json({ ok: true, rule });
+  });
+
+  router.post("/permissions/rules/:id/disable", auth, limit, (req: Request, res: Response) => {
+    const rule = runtime.setPermissionRuleEnabled(req.params.id, false);
+    if (!rule) {
+      res.status(404).json({ ok: false, error: "permission rule not found" });
+      return;
+    }
+    res.json({ ok: true, rule });
+  });
+
   router.post("/permissions/dry-run", auth, (req: Request, res: Response) => {
     const agentId = typeof req.body?.agentId === "string" ? req.body.agentId : "operator";
     const toolName = typeof req.body?.toolName === "string" ? req.body.toolName : "";

@@ -32,6 +32,10 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Returns wildcard/duplicate/overlap diagnostics for permission rules.
 - `POST /api/goatmez/permissions/simulate`
   - Evaluates multiple tool names against current permission rules in one call.
+- `POST /api/goatmez/permissions/rules/:id/enable`
+  - Enables a permission rule without deleting or recreating it.
+- `POST /api/goatmez/permissions/rules/:id/disable`
+  - Disables a permission rule while preserving it for later reactivation.
 - `GET /api/goatmez/plugins`
   - Lists Goatmez-native plugin, skill, and adapter registry records.
 - `GET /api/goatmez/plugins/registry`

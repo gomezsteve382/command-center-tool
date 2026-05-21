@@ -68,6 +68,24 @@ async function main() {
   const permissionDiagnostics = await request("/api/goatmez/permissions/diagnostics");
   assert(permissionDiagnostics.ok === true, "permission diagnostics must be ok");
 
+  const permissionRules = await request("/api/goatmez/permissions/rules");
+  assert(Array.isArray(permissionRules), "permission rules must be an array");
+  const firstRule = permissionRules[0];
+  if (firstRule?.id) {
+    const disabledRule = await request(`/api/goatmez/permissions/rules/${firstRule.id}/disable`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    assert(disabledRule.ok === true, "permission rule disable failed");
+    const enabledRule = await request(`/api/goatmez/permissions/rules/${firstRule.id}/enable`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    assert(enabledRule.ok === true, "permission rule enable failed");
+  }
+
   const pluginList = await request("/api/goatmez/plugins");
   assert(pluginList.ok === true, "plugin list must be ok");
   assert(Array.isArray(pluginList.plugins), "plugin list missing");
@@ -193,6 +211,7 @@ async function main() {
         activityCount: activity.items.length,
         plugins: pluginRegistry.total,
         enabledPluginHooks: pluginHooks.enabledHooks.length,
+        permissionRules: permissionRules.length,
         runSummaryStatus: runSummary.summary.status,
         commandPreviewRisk: commandPreview.risk,
         permissionSummary: permissionDiagnostics.decisionSummary,

@@ -518,15 +518,27 @@ export default function GoatmezPage() {
                   <div key={String(rule.id)} className="rounded border border-surface-700 p-2">
                     <div className="font-medium">{String(rule.pattern)}</div>
                     <div className="text-surface-400">{String(rule.decision)} | enabled={String(rule.enabled)}</div>
-                    <button
-                      className="mt-2 rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
-                      onClick={async () => {
-                        await api(`permissions/rules/${String(rule.id)}`, { method: "DELETE" });
-                        await refresh();
-                      }}
-                    >
-                      Delete
-                    </button>
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        className="rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                        onClick={async () => {
+                          const action = rule.enabled ? "disable" : "enable";
+                          await api(`permissions/rules/${String(rule.id)}/${action}`, { method: "POST", body: "{}" });
+                          await refresh();
+                        }}
+                      >
+                        {rule.enabled ? "Disable" : "Enable"}
+                      </button>
+                      <button
+                        className="rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                        onClick={async () => {
+                          await api(`permissions/rules/${String(rule.id)}`, { method: "DELETE" });
+                          await refresh();
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

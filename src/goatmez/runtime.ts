@@ -244,6 +244,16 @@ export class GoatmezRuntime {
     return deleted;
   }
 
+  setPermissionRuleEnabled(id: string, enabled: boolean): GoatmezPermissionRule | null {
+    const state = this.ensureState();
+    const rule = state.permissionRules.find((item) => item.id === id);
+    if (!rule) return null;
+    rule.enabled = enabled;
+    rule.updatedAt = new Date().toISOString();
+    this.stateStore.write(state);
+    return rule;
+  }
+
   dryRunPermission(agentId: string, toolName: string): Record<string, unknown> {
     const state = this.ensureState();
     return {
