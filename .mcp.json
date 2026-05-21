@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "code-engine-explorer": {
+      "command": "node",
+      "args": ["mcp-server/dist/index.js"],
+      "env": {
+        "CLAUDE_CODE_SRC_ROOT": "./src"
+      }
+    }
+  }
+}

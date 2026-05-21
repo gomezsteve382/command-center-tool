@@ -1,0 +1,271 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-21T04:40:11.215Z",
+  "tasks": [
+    {
+      "id": "task_mpezhnzk_xlt6q6ne",
+      "title": "inspect this workspace",
+      "status": "done",
+      "notes": [
+        "planner=rule",
+        "Mission: inspect this workspace\nStatus: done\n\nWorkspace Preview:\n- README.md: <div align=\"center\"> # Code Engine — Source Code **AI-powered code generation engine by SRT Lab** [![TypeScript](https:/\n- package.json: { \"name\": \"@srtlab/code-engine\", \"version\": \"1.0.0\", \"description\": \"AI-powered code "
+      ],
+      "createdAt": "2026-05-21T04:21:45.776Z",
+      "updatedAt": "2026-05-21T04:21:45.780Z"
+    },
+    {
+      "id": "task_mpezepis_myosgvxw",
+      "title": "inspect this workspace",
+      "status": "done",
+      "notes": [
+        "planner=rule",
+        "Mission: inspect this workspace\nStatus: done\n\nWorkspace Preview:\n- README.md: <div align=\"center\"> # Code Engine — Source Code **AI-powered code generation engine by SRT Lab** [![TypeScript](https:/\n- package.json: { \"name\": \"@srtlab/code-engine\", \"version\": \"1.0.0\", \"description\": \"AI-powered code "
+      ],
+      "createdAt": "2026-05-21T04:19:27.796Z",
+      "updatedAt": "2026-05-21T04:19:27.801Z"
+    }
+  ],
+  "missions": [
+    {
+      "id": "msn_mpezhnzk_9b78b3gv",
+      "sessionId": "sesskey_mpezhnzk_3ouj4pgq",
+      "message": "inspect this workspace",
+      "status": "done",
+      "planner": "rule",
+      "taskId": "task_mpezhnzk_xlt6q6ne",
+      "createdAt": "2026-05-21T04:21:45.776Z",
+      "updatedAt": "2026-05-21T04:21:45.779Z",
+      "result": "Mission: inspect this workspace\nStatus: done\n\nWorkspace Preview:\n- README.md: <div align=\"center\"> # Code Engine — Source Code **AI-powered code generation engine by SRT Lab** [![TypeScript](https:/\n- package.json: { \"name\": \"@srtlab/code-engine\", \"version\": \"1.0.0\", \"description\": \"AI-powered code generation engine\", \"license\": \"MIT\n- tsconfig.json: { \"compilerOptions\": { \"target\": \"ESNext\", \"module\": \"ESNext\", \"moduleResolution\": \"bundler\", \"jsx\": \"react-jsx\", \"esMod\n\nKnowledge:\n- Goatmez Operator Notes #1 (score 0.237)\n\nConnector Readiness:\n- openai: enabled | secrets 1\n- gmail: disabled | secrets 3"
+    },
+    {
+      "id": "msn_mpezepis_zhxyejgh",
+      "sessionId": "sesskey_mpezepis_mlmhwc7u",
+      "message": "inspect this workspace",
+      "status": "done",
+      "planner": "rule",
+      "taskId": "task_mpezepis_myosgvxw",
+      "createdAt": "2026-05-21T04:19:27.796Z",
+      "updatedAt": "2026-05-21T04:19:27.801Z",
+      "result": "Mission: inspect this workspace\nStatus: done\n\nWorkspace Preview:\n- README.md: <div align=\"center\"> # Code Engine — Source Code **AI-powered code generation engine by SRT Lab** [![TypeScript](https:/\n- package.json: { \"name\": \"@srtlab/code-engine\", \"version\": \"1.0.0\", \"description\": \"AI-powered code generation engine\", \"license\": \"MIT\n- tsconfig.json: { \"compilerOptions\": { \"target\": \"ESNext\", \"module\": \"ESNext\", \"moduleResolution\": \"bundler\", \"jsx\": \"react-jsx\", \"esMod\n\nKnowledge:\n- No matching knowledge chunks yet.\n\nConnector Readiness:\n- openai: enabled | secrets 1\n- gmail: disabled | secrets 3"
+    }
+  ],
+  "approvals": [
+    {
+      "id": "appr_mpezhnzn_8h31ffw6",
+      "missionId": "msn_mpezhnzk_9b78b3gv",
+      "toolName": "connector.http.request",
+      "reason": "Matched 'connector.*' => approval.",
+      "status": "pending",
+      "input": {
+        "dryRun": true,
+        "note": "auto-created by mission planner"
+      },
+      "createdAt": "2026-05-21T04:21:45.776Z",
+      "updatedAt": "2026-05-21T04:21:45.776Z"
+    },
+    {
+      "id": "appr_mpezepix_yl59liu1",
+      "missionId": "msn_mpezepis_zhxyejgh",
+      "toolName": "connector.http.request",
+      "reason": "Matched 'connector.*' => approval.",
+      "status": "pending",
+      "input": {
+        "dryRun": true,
+        "note": "auto-created by mission planner"
+      },
+      "createdAt": "2026-05-21T04:19:27.796Z",
+      "updatedAt": "2026-05-21T04:19:27.796Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "sesskey_mpezhnzk_3ouj4pgq",
+      "missionId": "msn_mpezhnzk_9b78b3gv",
+      "message": "inspect this workspace",
+      "status": "done",
+      "summary": "Mission: inspect this workspace\nStatus: done\n\nWorkspace Preview:\n- README.md: <div align=\"center\"> # Code Engine — Source Code **AI-powered code generation engine by SRT Lab** [![TypeScript](https:/\n- package.json: { \"name\": \"@srtlab/code-engine\", \"version\": \"1.0.0\", \"description\": \"AI-powered code generation engine\", \"license\": \"MIT\n- tsconfig.json: { \"compilerOptions\": { \"target\": \"ESNext\", \"module\": \"ESNext\", \"moduleResolution\": \"bundler\", \"jsx\": \"react-jsx\", \"esMod\n\nKnowledge:\n- Goatmez Operator Notes #1 (score 0.237)\n\nConnector Readiness:\n- openai: enabled | secrets 1\n- gmail: disabled | secrets 3",
+      "toolCalls": 1,
+      "approvals": 1,
+      "createdAt": "2026-05-21T04:21:45.776Z",
+      "updatedAt": "2026-05-21T04:21:45.780Z",
+      "completedAt": "2026-05-21T04:21:45.780Z"
+    },
+    {
+      "id": "sesskey_mpezepis_mlmhwc7u",
+      "missionId": "msn_mpezepis_zhxyejgh",
+      "message": "inspect this workspace",
+      "status": "done",
+      "summary": "Mission: inspect this workspace\nStatus: done\n\nWorkspace Preview:\n- README.md: <div align=\"center\"> # Code Engine — Source Code **AI-powered code generation engine by SRT Lab** [![TypeScript](https:/\n- package.json: { \"name\": \"@srtlab/code-engine\", \"version\": \"1.0.0\", \"description\": \"AI-powered code generation engine\", \"license\": \"MIT\n- tsconfig.json: { \"compilerOptions\": { \"target\": \"ESNext\", \"module\": \"ESNext\", \"moduleResolution\": \"bundler\", \"jsx\": \"react-jsx\", \"esMod\n\nKnowledge:\n- No matching knowledge chunks yet.\n\nConnector Readiness:\n- openai: enabled | secrets 1\n- gmail: disabled | secrets 3",
+      "toolCalls": 1,
+      "approvals": 1,
+      "createdAt": "2026-05-21T04:19:27.796Z",
+      "updatedAt": "2026-05-21T04:19:27.801Z",
+      "completedAt": "2026-05-21T04:19:27.801Z"
+    }
+  ],
+  "permissionRules": [
+    {
+      "pattern": "workspace.*",
+      "decision": "allow",
+      "description": "Workspace read tools are safe by default.",
+      "enabled": true,
+      "id": "rule_mpezepio_uiiuxr44",
+      "createdAt": "2026-05-21T04:19:27.792Z",
+      "updatedAt": "2026-05-21T04:19:27.792Z"
+    },
+    {
+      "pattern": "kb.*",
+      "decision": "allow",
+      "description": "Knowledge search is local read-only behavior.",
+      "enabled": true,
+      "id": "rule_mpezepio_urvc1xq5",
+      "createdAt": "2026-05-21T04:19:27.792Z",
+      "updatedAt": "2026-05-21T04:19:27.792Z"
+    },
+    {
+      "pattern": "connector.*",
+      "decision": "approval",
+      "description": "Connector actions require approval.",
+      "enabled": true,
+      "id": "rule_mpezepio_yh8wcxlh",
+      "createdAt": "2026-05-21T04:19:27.792Z",
+      "updatedAt": "2026-05-21T04:19:27.792Z"
+    },
+    {
+      "pattern": "shell.*",
+      "decision": "approval",
+      "description": "Shell access requires approval.",
+      "enabled": true,
+      "id": "rule_mpezepio_dc11yl9v",
+      "createdAt": "2026-05-21T04:19:27.792Z",
+      "updatedAt": "2026-05-21T04:19:27.792Z"
+    },
+    {
+      "pattern": "vault.*",
+      "decision": "approval",
+      "description": "Vault mutation requires approval.",
+      "enabled": true,
+      "id": "rule_mpezepio_mtr6sgj5",
+      "createdAt": "2026-05-21T04:19:27.792Z",
+      "updatedAt": "2026-05-21T04:19:27.792Z"
+    }
+  ],
+  "knowledgeDocuments": [
+    {
+      "id": "kbdoc_mpezfpun_hxkcdjf7",
+      "title": "Goatmez Operator Notes",
+      "source": "bootstrap",
+      "tags": [
+        "ops",
+        "agent",
+        "mcp"
+      ],
+      "chunkCount": 1,
+      "createdAt": "2026-05-21T04:20:14.878Z",
+      "updatedAt": "2026-05-21T04:20:14.878Z"
+    }
+  ],
+  "knowledgeChunks": [
+    {
+      "id": "kbchunk_mpezfpun_06s44yko",
+      "documentId": "kbdoc_mpezfpun_hxkcdjf7",
+      "index": 0,
+      "text": "Goatmez runs mission-based autonomous workflows with approval gates.\n\nConnector actions should be dry-run by default and reviewed before live execution.\n\nKnowledge search uses hybrid ranking over keyword and deterministic vectors.",
+      "keywords": [
+        "goatmez",
+        "runs",
+        "mission-based",
+        "autonomous",
+        "workflows",
+        "with",
+        "approval",
+        "gates",
+        "connector",
+        "actions",
+        "should",
+        "dry-run",
+        "default",
+        "and",
+        "reviewed",
+        "before",
+        "live",
+        "execution",
+        "knowledge",
+        "search",
+        "uses",
+        "hybrid",
+        "ranking",
+        "over",
+        "keyword",
+        "deterministic",
+        "vectors"
+      ],
+      "vector": [
+        0.5840707964601771,
+        0.053097345132743,
+        0.752212389380531,
+        0.6106194690265485,
+        0.902654867256637,
+        0.8584070796460175,
+        0.752212389380531,
+        0.21238938053097325,
+        0.24778761061946897,
+        0.9734513274336284,
+        0.6814159292035398,
+        0.22123893805309747,
+        0.06194690265486713,
+        0.20353982300884943,
+        0.7168141592920354,
+        0.6460176991150443,
+        0.6548672566371683,
+        0.5752212389380533,
+        0.07079646017699116,
+        0.8230088495575223,
+        0.31858407079646,
+        0.7876106194690264,
+        0.7787610619469025,
+        0.6814159292035398,
+        0.9292035398230089,
+        0.9115044247787613,
+        0.9557522123893806,
+        0.7964601769911503,
+        0.8495575221238938,
+        0.24778761061946897,
+        0.26548672566371695,
+        0.6283185840707963,
+        0.6371681415929202,
+        0.18584070796460156,
+        0.7433628318584069,
+        0.336283185840708,
+        0.12389380530973451,
+        0.982300884955752,
+        0.9203539823008849,
+        0.02654867256637171,
+        0.8584070796460177,
+        0.1504424778761062,
+        0.053097345132743445,
+        0.0619469026548673,
+        0.2831858407079646,
+        0.831858407079646,
+        0.9292035398230089,
+        0.46902654867256643,
+        0.831858407079646,
+        0.03539823008849563,
+        0.8495575221238938,
+        0.9557522123893806,
+        0.49557522123893794,
+        0.6017699115044248,
+        0.24778761061946897,
+        0.8849557522123894,
+        0.1504424778761062,
+        0.9646017699115044,
+        0.8849557522123894,
+        0.831858407079646,
+        0.8584070796460177,
+        0.08849557522123863,
+        0.24778761061946897,
+        0.7345132743362832
+      ]
+    }
+  ]
+}
