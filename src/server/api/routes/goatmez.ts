@@ -82,6 +82,24 @@ export function createGoatmezRouter(): express.Router {
     res.json({ ok: true, output: runtime.dryRunPermission(agentId, toolName) });
   });
 
+  router.get("/permissions/diagnostics", auth, (_req: Request, res: Response) => {
+    res.json(runtime.permissionDiagnostics());
+  });
+
+  router.post("/permissions/simulate", auth, (req: Request, res: Response) => {
+    const agentId = typeof req.body?.agentId === "string" ? req.body.agentId : "operator";
+    const toolNames = Array.isArray(req.body?.toolNames)
+      ? req.body.toolNames.map(String)
+      : typeof req.body?.toolsText === "string"
+        ? req.body.toolsText.split(/\r?\n/g)
+        : [];
+    if (!toolNames.length) {
+      res.status(400).json({ ok: false, error: "toolNames or toolsText is required" });
+      return;
+    }
+    res.json(runtime.simulatePermissions(agentId, toolNames));
+  });
+
   router.get("/sessions", auth, (_req: Request, res: Response) => {
     const state = runtime.readState();
     res.json(state.sessions.slice(0, 100));

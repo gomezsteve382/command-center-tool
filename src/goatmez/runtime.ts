@@ -6,7 +6,13 @@ import { getGoatmezConflictRules } from "./conflicts.js";
 import { getMcpDiagnostics } from "./diagnostics.js";
 import { goatmezId } from "./id.js";
 import { ingestKnowledgeText, searchKnowledge } from "./knowledge.js";
-import { ensureDefaultPermissionRules, evaluatePermissionRule, validatePermissionPattern } from "./permissions.js";
+import {
+  ensureDefaultPermissionRules,
+  evaluatePermissionRule,
+  permissionRuleDiagnostics,
+  simulatePermissionRules,
+  validatePermissionPattern
+} from "./permissions.js";
 import { GoatmezStateStore, GoatmezVaultStore, emptyGoatmezState } from "./storage.js";
 import type {
   GoatmezApprovalRecord,
@@ -224,6 +230,16 @@ export class GoatmezRuntime {
       toolName,
       rule: evaluatePermissionRule(state.permissionRules, toolName)
     };
+  }
+
+  simulatePermissions(agentId: string, toolNames: string[]): Record<string, unknown> {
+    const state = this.ensureState();
+    return simulatePermissionRules(state.permissionRules, toolNames, agentId);
+  }
+
+  permissionDiagnostics(): Record<string, unknown> {
+    const state = this.ensureState();
+    return permissionRuleDiagnostics(state.permissionRules);
   }
 
   observabilitySnapshot(): Record<string, unknown> {

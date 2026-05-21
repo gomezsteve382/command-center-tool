@@ -39,12 +39,22 @@ async function main() {
   assert(diagnostics.ok === true, "diagnostics.ok must be true");
   assert(diagnostics.mcp && typeof diagnostics.mcp === "object", "diagnostics.mcp missing");
 
+  const permissionDiagnostics = await request("/api/goatmez/permissions/diagnostics");
+  assert(permissionDiagnostics.ok === true, "permission diagnostics must be ok");
+
   const permissions = await request("/api/goatmez/permissions/dry-run", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ agentId: "operator", toolName: "connector.http.request" })
   });
   assert(permissions.ok === true, "permissions dry-run failed");
+
+  const simulation = await request("/api/goatmez/permissions/simulate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ agentId: "operator", toolNames: ["connector.http.request", "kb.search"] })
+  });
+  assert(simulation.ok === true, "permissions simulate failed");
 
   const knowledge = await request("/api/goatmez/knowledge/search", {
     method: "POST",
@@ -62,6 +72,8 @@ async function main() {
         queue: observability.queue,
         connectorSummary: observability.connectors,
         mcpSummary: diagnostics.mcp,
+        permissionSummary: permissionDiagnostics.decisionSummary,
+        simulationCount: simulation.evaluatedCount,
         conflictRules: conflicts.rules.length,
         knowledgeResults: knowledge.results.length
       },

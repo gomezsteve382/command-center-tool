@@ -55,12 +55,18 @@ export default function GoatmezPage() {
   const [kbResults, setKbResults] = useState<KnowledgeResult[]>([]);
   const [permissionTool, setPermissionTool] = useState("connector.http.request");
   const [permissionResult, setPermissionResult] = useState<AnyRecord | null>(null);
+  const [permissionDiagnostics, setPermissionDiagnostics] = useState<AnyRecord>({});
+  const [permissionSimulationInput, setPermissionSimulationInput] = useState("connector.http.request\nkb.search\nvault.list");
+  const [permissionSimulationResult, setPermissionSimulationResult] = useState<AnyRecord>({});
+  const [newRulePattern, setNewRulePattern] = useState("workflow.*");
+  const [newRuleDecision, setNewRuleDecision] = useState("approval");
+  const [newRuleDescription, setNewRuleDescription] = useState("Workflow actions require approval.");
 
   const refresh = async () => {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, cfg, conflicts, diag] = await Promise.all([
+      const [h, o, c, r, s, cfg, conflicts, diag, permDiag] = await Promise.all([
         api("health"),
         api("observability"),
         api("connectors"),
@@ -68,7 +74,8 @@ export default function GoatmezPage() {
         api("sessions"),
         api("config"),
         api("conflicts"),
-        api("diagnostics")
+        api("diagnostics"),
+        api("permissions/diagnostics")
       ]);
       setHealth(h);
       setObservability(o);
@@ -78,6 +85,7 @@ export default function GoatmezPage() {
       setConfigReport((cfg && typeof cfg.config === "object" && cfg.config) ? cfg.config as AnyRecord : {});
       setConflictRules((conflicts && Array.isArray(conflicts.rules)) ? conflicts.rules as AnyRecord[] : []);
       setDiagnostics((diag && typeof diag === "object") ? diag as AnyRecord : {});
+      setPermissionDiagnostics((permDiag && typeof permDiag === "object") ? permDiag as AnyRecord : {});
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -240,6 +248,43 @@ export default function GoatmezPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {card("Permission Rules", (
             <div className="space-y-2">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                <input
+                  value={newRulePattern}
+                  onChange={(event) => setNewRulePattern(event.target.value)}
+                  className="rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+                />
+                <select
+                  value={newRuleDecision}
+                  onChange={(event) => setNewRuleDecision(event.target.value)}
+                  className="rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+                >
+                  <option value="allow">allow</option>
+                  <option value="approval">approval</option>
+                  <option value="deny">deny</option>
+                </select>
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    await api("permissions/rules", {
+                      method: "POST",
+                      body: JSON.stringify({
+                        pattern: newRulePattern,
+                        decision: newRuleDecision,
+                        description: newRuleDescription
+                      })
+                    });
+                    await refresh();
+                  }}
+                >
+                  Add Rule
+                </button>
+              </div>
+              <input
+                value={newRuleDescription}
+                onChange={(event) => setNewRuleDescription(event.target.value)}
+                className="w-full rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+              />
               <div className="flex gap-2">
                 <input
                   value={permissionTool}
@@ -260,11 +305,41 @@ export default function GoatmezPage() {
                 </button>
               </div>
               <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap">{JSON.stringify(permissionResult, null, 2)}</pre>
+              <div className="space-y-2">
+                <textarea
+                  value={permissionSimulationInput}
+                  onChange={(event) => setPermissionSimulationInput(event.target.value)}
+                  className="w-full rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs min-h-[96px]"
+                />
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    const payload = await api("permissions/simulate", {
+                      method: "POST",
+                      body: JSON.stringify({ agentId: "operator", toolsText: permissionSimulationInput })
+                    });
+                    setPermissionSimulationResult(payload);
+                  }}
+                >
+                  Simulate Batch
+                </button>
+                <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap">{JSON.stringify(permissionSimulationResult, null, 2)}</pre>
+                <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap">{JSON.stringify(permissionDiagnostics, null, 2)}</pre>
+              </div>
               <div className="space-y-2 max-h-[280px] overflow-auto">
                 {rules.map((rule) => (
                   <div key={String(rule.id)} className="rounded border border-surface-700 p-2">
                     <div className="font-medium">{String(rule.pattern)}</div>
                     <div className="text-surface-400">{String(rule.decision)} | enabled={String(rule.enabled)}</div>
+                    <button
+                      className="mt-2 rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                      onClick={async () => {
+                        await api(`permissions/rules/${String(rule.id)}`, { method: "DELETE" });
+                        await refresh();
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
                 ))}
               </div>
