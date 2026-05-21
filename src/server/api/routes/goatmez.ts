@@ -122,6 +122,24 @@ export function createGoatmezRouter(): express.Router {
     res.json(matches.slice(0, 100));
   });
 
+  router.get("/sessions/:id", auth, (req: Request, res: Response) => {
+    const session = runtime.getSessionById(req.params.id);
+    if (!session) {
+      res.status(404).json({ ok: false, error: "session not found" });
+      return;
+    }
+    res.json({ ok: true, session });
+  });
+
+  router.post("/sessions/:id/replay-summary", auth, (req: Request, res: Response) => {
+    const output = runtime.replaySessionSummary(req.params.id);
+    if (!output) {
+      res.status(404).json({ ok: false, error: "session not found" });
+      return;
+    }
+    res.json(output);
+  });
+
   router.get("/knowledge", auth, (_req: Request, res: Response) => {
     const state = runtime.readState();
     res.json(state.knowledgeDocuments);

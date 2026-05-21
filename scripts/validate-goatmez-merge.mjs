@@ -67,6 +67,16 @@ async function main() {
   assert(knowledge.ok === true, "knowledge search failed");
   assert(Array.isArray(knowledge.results), "knowledge search must return results array");
 
+  const sessions = await request("/api/goatmez/sessions");
+  assert(Array.isArray(sessions), "sessions must be an array");
+  if (sessions.length > 0 && sessions[0]?.id) {
+    const replay = await request(`/api/goatmez/sessions/${sessions[0].id}/replay-summary`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+    assert(replay.ok === true, "session replay summary failed");
+  }
+
   console.log("[goatmez-validate] ok");
   console.log(
     JSON.stringify(

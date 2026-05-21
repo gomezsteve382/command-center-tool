@@ -62,6 +62,8 @@ export default function GoatmezPage() {
   const [newRulePattern, setNewRulePattern] = useState("workflow.*");
   const [newRuleDecision, setNewRuleDecision] = useState("approval");
   const [newRuleDescription, setNewRuleDescription] = useState("Workflow actions require approval.");
+  const [sessionSearchInput, setSessionSearchInput] = useState("inspect");
+  const [sessionReplayPreview, setSessionReplayPreview] = useState<AnyRecord>({});
 
   const refresh = async () => {
     setLoading(true);
@@ -356,16 +358,56 @@ export default function GoatmezPage() {
           ))}
 
           {card("Session History", (
-            <div className="space-y-2 max-h-[360px] overflow-auto">
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  value={sessionSearchInput}
+                  onChange={(event) => setSessionSearchInput(event.target.value)}
+                  className="w-full rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+                />
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    const payload = await api("sessions/search", {
+                      method: "POST",
+                      body: JSON.stringify({ query: sessionSearchInput })
+                    });
+                    setSessions(Array.isArray(payload) ? payload : []);
+                  }}
+                >
+                  Search
+                </button>
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    const payload = await api("sessions");
+                    setSessions(Array.isArray(payload) ? payload : []);
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap">{JSON.stringify(sessionReplayPreview, null, 2)}</pre>
+              <div className="space-y-2 max-h-[360px] overflow-auto">
               {sessions.map((session) => (
                 <div key={String(session.id)} className="rounded border border-surface-700 p-2">
                   <div className="font-medium">{String(session.message)}</div>
                   <div className="text-surface-400">{String(session.status)} | tools={String(session.toolCalls)} | approvals={String(session.approvals)}</div>
                   <p className="text-surface-500 mt-1">{String(session.summary || "").slice(0, 180)}</p>
+                  <button
+                    className="mt-2 rounded border border-surface-700 px-2 py-1 text-[11px] hover:bg-surface-800"
+                    onClick={async () => {
+                      const payload = await api(`sessions/${String(session.id)}/replay-summary`, { method: "POST" });
+                      setSessionReplayPreview(payload);
+                    }}
+                  >
+                    Replay Summary
+                  </button>
                 </div>
               ))}
               {!sessions.length && !loading && <p className="text-surface-500">No session records yet.</p>}
               {loading && <p className="text-surface-500">Loading...</p>}
+              </div>
             </div>
           ))}
         </div>

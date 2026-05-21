@@ -26,6 +26,8 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Returns wildcard/duplicate/overlap diagnostics for permission rules.
 - `POST /api/goatmez/permissions/simulate`
   - Evaluates multiple tool names against current permission rules in one call.
+- `POST /api/goatmez/sessions/:id/replay-summary`
+  - Returns replay-safe mission/session summary payload for operator review.
 
 ## API startup for validation
 

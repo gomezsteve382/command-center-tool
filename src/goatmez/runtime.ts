@@ -242,6 +242,31 @@ export class GoatmezRuntime {
     return permissionRuleDiagnostics(state.permissionRules);
   }
 
+  getSessionById(sessionId: string): GoatmezSessionRecord | null {
+    const state = this.ensureState();
+    return state.sessions.find((session) => session.id === sessionId) || null;
+  }
+
+  replaySessionSummary(sessionId: string): Record<string, unknown> | null {
+    const session = this.getSessionById(sessionId);
+    if (!session) return null;
+    const replaySafeId = `replay_${session.id}`;
+    return {
+      ok: true,
+      replaySafeId,
+      session: {
+        id: session.id,
+        missionId: session.missionId,
+        status: session.status,
+        message: session.message,
+        summary: session.summary || "",
+        toolCalls: session.toolCalls,
+        approvals: session.approvals,
+        completedAt: session.completedAt || null
+      }
+    };
+  }
+
   observabilitySnapshot(): Record<string, unknown> {
     const state = this.ensureState();
     const connectors = readConnectorProfiles(this.config);
