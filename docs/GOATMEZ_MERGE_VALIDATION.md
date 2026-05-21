@@ -30,6 +30,10 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Lists Goatmez-native plugin, skill, and adapter registry records.
 - `GET /api/goatmez/plugins/registry`
   - Returns plugin registry totals, kind breakdowns, and registered tool hooks.
+- `GET /api/goatmez/plugins/hooks`
+  - Returns enabled and disabled tool hooks declared by the plugin registry.
+- `POST /api/goatmez/plugins/hooks/check`
+  - Dry-runs whether a specific Goatmez tool hook is currently active.
 - `POST /api/goatmez/plugins/:id/enable`
   - Enables a local Goatmez plugin registry record.
 - `POST /api/goatmez/plugins/:id/disable`

@@ -80,3 +80,56 @@ export function pluginRegistrySnapshot(plugins: GoatmezPluginRecord[]): Record<s
     toolHooks: [...toolHooks].sort()
   };
 }
+
+export function pluginHookSnapshot(plugins: GoatmezPluginRecord[]): Record<string, unknown> {
+  const enabledHooks = new Set<string>();
+  const disabledHooks = new Set<string>();
+  const rows = plugins.flatMap((plugin) =>
+    plugin.toolHooks.map((hook) => {
+      if (plugin.enabled) {
+        enabledHooks.add(hook);
+      } else {
+        disabledHooks.add(hook);
+      }
+      return {
+        hook,
+        pluginId: plugin.id,
+        pluginName: plugin.name,
+        kind: plugin.kind,
+        enabled: plugin.enabled
+      };
+    })
+  );
+
+  return {
+    ok: true,
+    generatedAt: new Date().toISOString(),
+    enabledHooks: [...enabledHooks].sort(),
+    disabledHooks: [...disabledHooks].filter((hook) => !enabledHooks.has(hook)).sort(),
+    hooks: rows.sort((a, b) => a.hook.localeCompare(b.hook))
+  };
+}
+
+export function checkPluginHook(plugins: GoatmezPluginRecord[], hook: string): Record<string, unknown> {
+  const normalized = hook.trim();
+  const providers = plugins
+    .filter((plugin) => plugin.toolHooks.includes(normalized))
+    .map((plugin) => ({
+      pluginId: plugin.id,
+      pluginName: plugin.name,
+      kind: plugin.kind,
+      enabled: plugin.enabled
+    }));
+
+  return {
+    ok: Boolean(normalized),
+    hook: normalized,
+    active: providers.some((plugin) => plugin.enabled),
+    providers,
+    reason: providers.length
+      ? providers.some((plugin) => plugin.enabled)
+        ? "At least one enabled registry record provides this hook."
+        : "Hook exists, but all provider records are disabled."
+      : "No registry record provides this hook."
+  };
+}

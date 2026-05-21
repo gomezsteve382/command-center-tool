@@ -72,6 +72,18 @@ async function main() {
   assert(pluginRegistry.ok === true, "plugin registry must be ok");
   assert(pluginRegistry.total >= pluginList.plugins.length, "plugin registry total mismatch");
 
+  const pluginHooks = await request("/api/goatmez/plugins/hooks");
+  assert(pluginHooks.ok === true, "plugin hooks must be ok");
+  assert(Array.isArray(pluginHooks.enabledHooks), "enabled plugin hooks missing");
+
+  const pluginHookCheck = await request("/api/goatmez/plugins/hooks/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ hook: "kb.search" })
+  });
+  assert(pluginHookCheck.ok === true, "plugin hook check failed");
+  assert(pluginHookCheck.active === true, "kb.search hook should be active");
+
   const firstPlugin = pluginList.plugins[0];
   if (firstPlugin?.id) {
     const disabled = await request(`/api/goatmez/plugins/${firstPlugin.id}/disable`, {
@@ -175,6 +187,7 @@ async function main() {
         connectorMatrixAgents: connectorMatrix.agents,
         activityCount: activity.items.length,
         plugins: pluginRegistry.total,
+        enabledPluginHooks: pluginHooks.enabledHooks.length,
         runSummaryStatus: runSummary.summary.status,
         commandPreviewRisk: commandPreview.risk,
         permissionSummary: permissionDiagnostics.decisionSummary,

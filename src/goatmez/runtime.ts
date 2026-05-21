@@ -14,7 +14,7 @@ import {
   simulatePermissionRules,
   validatePermissionPattern
 } from "./permissions.js";
-import { ensureDefaultPlugins, pluginRegistrySnapshot } from "./plugins.js";
+import { checkPluginHook, ensureDefaultPlugins, pluginHookSnapshot, pluginRegistrySnapshot } from "./plugins.js";
 import { GoatmezStateStore, GoatmezVaultStore, emptyGoatmezState } from "./storage.js";
 import type {
   GoatmezApprovalRecord,
@@ -284,6 +284,16 @@ export class GoatmezRuntime {
   pluginRegistrySnapshot(): Record<string, unknown> {
     const state = this.ensureState();
     return pluginRegistrySnapshot(state.plugins);
+  }
+
+  pluginHookSnapshot(): Record<string, unknown> {
+    const state = this.ensureState();
+    return pluginHookSnapshot(state.plugins);
+  }
+
+  checkPluginHook(hook: string): Record<string, unknown> {
+    const state = this.ensureState();
+    return checkPluginHook(state.plugins, hook);
   }
 
   getSessionById(sessionId: string): GoatmezSessionRecord | null {

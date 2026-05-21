@@ -165,6 +165,16 @@ export function createGoatmezRouter(): express.Router {
     res.json(runtime.pluginRegistrySnapshot());
   });
 
+  router.get("/plugins/hooks", auth, (_req: Request, res: Response) => {
+    res.json(runtime.pluginHookSnapshot());
+  });
+
+  router.post("/plugins/hooks/check", auth, (req: Request, res: Response) => {
+    const hook = typeof req.body?.hook === "string" ? req.body.hook : "";
+    const output = runtime.checkPluginHook(hook);
+    res.status(output.ok ? 200 : 400).json(output);
+  });
+
   router.post("/plugins/:id/enable", auth, limit, (req: Request, res: Response) => {
     const plugin = runtime.setPluginEnabled(req.params.id, true);
     if (!plugin) {

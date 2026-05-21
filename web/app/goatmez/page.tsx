@@ -50,6 +50,9 @@ export default function GoatmezPage() {
   const [connectorMatrix, setConnectorMatrix] = useState<AnyRecord>({});
   const [plugins, setPlugins] = useState<AnyRecord[]>([]);
   const [pluginRegistry, setPluginRegistry] = useState<AnyRecord>({});
+  const [pluginHooks, setPluginHooks] = useState<AnyRecord>({});
+  const [pluginHookInput, setPluginHookInput] = useState("kb.search");
+  const [pluginHookCheck, setPluginHookCheck] = useState<AnyRecord>({});
   const [configReport, setConfigReport] = useState<AnyRecord>({});
   const [conflictRules, setConflictRules] = useState<AnyRecord[]>([]);
   const [rules, setRules] = useState<AnyRecord[]>([]);
@@ -82,7 +85,7 @@ export default function GoatmezPage() {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, a, cfg, conflicts, diag, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload] = await Promise.all([
+      const [h, o, c, r, s, a, cfg, conflicts, diag, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload] = await Promise.all([
         api("health"),
         api("observability"),
         api(`connectors?agentId=${encodeURIComponent(connectorAgentId)}`),
@@ -97,7 +100,8 @@ export default function GoatmezPage() {
         api("connectors/matrix?agents=operator,developer"),
         api("permissions/diagnostics"),
         api("plugins"),
-        api("plugins/registry")
+        api("plugins/registry"),
+        api("plugins/hooks")
       ]);
       setHealth(h);
       setObservability(o);
@@ -114,6 +118,7 @@ export default function GoatmezPage() {
       setPermissionDiagnostics((permDiag && typeof permDiag === "object") ? permDiag as AnyRecord : {});
       setPlugins((pluginPayload && Array.isArray(pluginPayload.plugins)) ? pluginPayload.plugins as AnyRecord[] : []);
       setPluginRegistry((pluginRegistryPayload && typeof pluginRegistryPayload === "object") ? pluginRegistryPayload as AnyRecord : {});
+      setPluginHooks((pluginHooksPayload && typeof pluginHooksPayload === "object") ? pluginHooksPayload as AnyRecord : {});
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -245,6 +250,27 @@ export default function GoatmezPage() {
           {card("Plugin / Skill Registry", (
             <div className="space-y-3">
               <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all">{JSON.stringify(pluginRegistry, null, 2)}</pre>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all">{JSON.stringify(pluginHooks, null, 2)}</pre>
+              <div className="flex gap-2">
+                <input
+                  value={pluginHookInput}
+                  onChange={(event) => setPluginHookInput(event.target.value)}
+                  className="w-full rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+                />
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    const payload = await api("plugins/hooks/check", {
+                      method: "POST",
+                      body: JSON.stringify({ hook: pluginHookInput })
+                    });
+                    setPluginHookCheck(payload);
+                  }}
+                >
+                  Check Hook
+                </button>
+              </div>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all">{JSON.stringify(pluginHookCheck, null, 2)}</pre>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                 {plugins.map((plugin) => (
                   <div key={String(plugin.id)} className="rounded border border-surface-700 p-2">
