@@ -39,6 +39,9 @@ async function main() {
   assert(diagnostics.ok === true, "diagnostics.ok must be true");
   assert(diagnostics.mcp && typeof diagnostics.mcp === "object", "diagnostics.mcp missing");
 
+  const metrics = await request("/api/goatmez/metrics");
+  assert(metrics.ok === true, "metrics.ok must be true");
+
   const permissionDiagnostics = await request("/api/goatmez/permissions/diagnostics");
   assert(permissionDiagnostics.ok === true, "permission diagnostics must be ok");
 
@@ -72,6 +75,7 @@ async function main() {
         queue: observability.queue,
         connectorSummary: observability.connectors,
         mcpSummary: diagnostics.mcp,
+        queueMetrics: metrics.queue,
         permissionSummary: permissionDiagnostics.decisionSummary,
         simulationCount: simulation.evaluatedCount,
         conflictRules: conflicts.rules.length,

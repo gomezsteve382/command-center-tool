@@ -25,6 +25,10 @@ export function createGoatmezRouter(): express.Router {
     res.json(runtime.diagnosticsSnapshot());
   });
 
+  router.get("/metrics", auth, (_req: Request, res: Response) => {
+    res.json(runtime.metricsSnapshot());
+  });
+
   router.post("/migrations/legacy", auth, limit, (_req: Request, res: Response) => {
     res.json({ ok: true, result: runtime.importLegacyNow() });
   });

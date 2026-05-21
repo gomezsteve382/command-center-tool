@@ -320,6 +320,54 @@ export class GoatmezRuntime {
     };
   }
 
+  metricsSnapshot(): Record<string, unknown> {
+    const state = this.ensureState();
+    const connectors = this.connectorsStatus();
+    const sessionStatus = state.sessions.reduce<Record<string, number>>((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    }, {});
+    const approvalStatus = state.approvals.reduce<Record<string, number>>((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    }, {});
+    const latestSessions = state.sessions
+      .slice(0, 5)
+      .map((session) => ({
+        id: session.id,
+        status: session.status,
+        message: session.message.slice(0, 120),
+        updatedAt: session.updatedAt
+      }));
+
+    return {
+      ok: true,
+      generatedAt: new Date().toISOString(),
+      queue: {
+        pendingApprovals: approvalStatus.pending || 0,
+        runningMissions: state.missions.filter((mission) => mission.status === "running").length
+      },
+      sessions: {
+        total: state.sessions.length,
+        byStatus: sessionStatus,
+        latest: latestSessions
+      },
+      approvals: {
+        total: state.approvals.length,
+        byStatus: approvalStatus
+      },
+      knowledge: {
+        documents: state.knowledgeDocuments.length,
+        chunks: state.knowledgeChunks.length
+      },
+      connectors: {
+        total: connectors.length,
+        ready: connectors.filter((item) => item.ready).length,
+        enabled: connectors.filter((item) => item.enabled).length
+      }
+    };
+  }
+
   importLegacyNow(): { imported: boolean; notes: string[] } {
     const state = this.ensureState();
     const result = importLegacyGoatmezData(this.config, state);

@@ -20,6 +20,8 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
 
 - `GET /api/goatmez/diagnostics`
   - Returns MCP config diagnostics, connector readiness snapshot, and observability summary.
+- `GET /api/goatmez/metrics`
+  - Returns queue/activity/session/approval/connector metrics for operator monitoring.
 - `GET /api/goatmez/permissions/diagnostics`
   - Returns wildcard/duplicate/overlap diagnostics for permission rules.
 - `POST /api/goatmez/permissions/simulate`
