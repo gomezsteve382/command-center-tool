@@ -63,6 +63,8 @@ $env:API_PORT='3101'
 node --import tsx/esm src/server/api/index.ts
 ```
 
+When `GOATMEZ_DB_DRIVER=memory` is set and no explicit `GOATMEZ_DB_PATH` or `GOATMEZ_VAULT_PATH` is provided, Goatmez uses temp runtime files outside the tracked workspace state directory.
+
 ## Web startup for Goatmez UI
 
 ```powershell

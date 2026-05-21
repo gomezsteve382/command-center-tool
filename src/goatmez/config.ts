@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { tmpdir } from "os";
 import { resolve } from "path";
 import type { GoatmezConnectorProfile } from "./types.js";
 
@@ -25,23 +26,29 @@ export function getGoatmezConfig(): GoatmezConfig {
   const workspaceRoot = resolve(
     envValue("GOATMEZ_WORKSPACE_ROOT", "WORK_DIR") ?? process.cwd()
   );
+  const dbDriver = envValue("GOATMEZ_DB_DRIVER", "CODE_ENGINE_GOATMEZ_DB_DRIVER") ?? "json";
+  const statePath = envValue("GOATMEZ_DB_PATH", "CODE_ENGINE_GOATMEZ_DB_PATH");
+  const vaultPath = envValue("GOATMEZ_VAULT_PATH", "CODE_ENGINE_GOATMEZ_VAULT_PATH");
+  const memoryRoot = resolve(tmpdir(), "goatmez-code-engine-memory", String(process.pid));
   return {
     workspaceRoot,
-    statePath: resolve(
-      workspaceRoot,
-      envValue("GOATMEZ_DB_PATH", "CODE_ENGINE_GOATMEZ_DB_PATH") ?? ".code-engine/goatmez/state.json"
-    ),
-    vaultPath: resolve(
-      workspaceRoot,
-      envValue("GOATMEZ_VAULT_PATH", "CODE_ENGINE_GOATMEZ_VAULT_PATH") ?? ".code-engine/goatmez/vault.json"
-    ),
+    statePath: statePath
+      ? resolve(workspaceRoot, statePath)
+      : dbDriver === "memory"
+        ? resolve(memoryRoot, "state.json")
+        : resolve(workspaceRoot, ".code-engine/goatmez/state.json"),
+    vaultPath: vaultPath
+      ? resolve(workspaceRoot, vaultPath)
+      : dbDriver === "memory"
+        ? resolve(memoryRoot, "vault.json")
+        : resolve(workspaceRoot, ".code-engine/goatmez/vault.json"),
     vaultKey: envValue("GOATMEZ_VAULT_KEY", "CODE_ENGINE_GOATMEZ_VAULT_KEY") ?? "",
     connectorsPath: resolve(
       workspaceRoot,
       envValue("GOATMEZ_CONNECTORS_CONFIG", "CODE_ENGINE_GOATMEZ_CONNECTORS_CONFIG") ?? "config/connectors.json"
     ),
     plannerProvider: envValue("GOATMEZ_PLANNER_PROVIDER", "CODE_ENGINE_GOATMEZ_PLANNER_PROVIDER") ?? "rule",
-    dbDriver: envValue("GOATMEZ_DB_DRIVER", "CODE_ENGINE_GOATMEZ_DB_DRIVER") ?? "json",
+    dbDriver,
   };
 }
 

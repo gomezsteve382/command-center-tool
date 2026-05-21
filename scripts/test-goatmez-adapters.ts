@@ -1,6 +1,6 @@
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
-import { join } from "path";
+import { join, resolve } from "path";
 import { getGoatmezConfig } from "../src/goatmez/config.js";
 import { getGoatmezConfigCompatibility, importLegacyGoatmezData } from "../src/goatmez/compat.js";
 import { emptyGoatmezState } from "../src/goatmez/storage.js";
@@ -75,6 +75,9 @@ function main(): void {
     const state = emptyGoatmezState();
     const result = importLegacyGoatmezData(config, state);
 
+    assert(config.dbDriver === "memory", "config should use memory driver");
+    assert(!config.statePath.startsWith(resolve(root, ".code-engine")), "memory state should not use tracked workspace state");
+    assert(!config.vaultPath.startsWith(resolve(root, ".code-engine")), "memory vault should not use tracked workspace vault");
     assert(result.imported === true, "legacy import should mark imported=true");
     assert(state.sessions.length === 1, "one legacy session should be imported");
     assert(state.permissionRules.length === 1, "one legacy permission rule should be imported");
