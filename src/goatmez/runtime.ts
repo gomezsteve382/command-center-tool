@@ -3,7 +3,7 @@ import { basename, resolve } from "path";
 import { getGoatmezConfig, readConnectorProfiles } from "./config.js";
 import { importLegacyGoatmezData, getGoatmezConfigCompatibility } from "./compat.js";
 import { getGoatmezConflictRules } from "./conflicts.js";
-import { getMcpDiagnostics } from "./diagnostics.js";
+import { getMcpDiagnostics, getMcpExplorer } from "./diagnostics.js";
 import { goatmezId } from "./id.js";
 import { ingestKnowledgeText, searchKnowledge } from "./knowledge.js";
 import { previewCommand, summarizeRunResult } from "./operatorUx.js";
@@ -473,6 +473,10 @@ export class GoatmezRuntime {
       connectors: this.connectorsStatus(),
       observability: this.observabilitySnapshot()
     };
+  }
+
+  mcpExplorerSnapshot(): Record<string, unknown> {
+    return getMcpExplorer(this.config);
   }
 
   metricsSnapshot(): Record<string, unknown> {

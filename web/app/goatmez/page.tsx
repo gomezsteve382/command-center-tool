@@ -45,6 +45,7 @@ export default function GoatmezPage() {
   const [observability, setObservability] = useState<AnyRecord>({});
   const [connectors, setConnectors] = useState<AnyRecord[]>([]);
   const [diagnostics, setDiagnostics] = useState<AnyRecord>({});
+  const [mcpExplorer, setMcpExplorer] = useState<AnyRecord>({});
   const [metrics, setMetrics] = useState<AnyRecord>({});
   const [activity, setActivity] = useState<AnyRecord>({});
   const [connectorMatrix, setConnectorMatrix] = useState<AnyRecord>({});
@@ -85,7 +86,7 @@ export default function GoatmezPage() {
     setLoading(true);
     setError("");
     try {
-      const [h, o, c, r, s, a, cfg, conflicts, diag, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload] = await Promise.all([
+      const [h, o, c, r, s, a, cfg, conflicts, diag, mcpExplorerPayload, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload] = await Promise.all([
         api("health"),
         api("observability"),
         api(`connectors?agentId=${encodeURIComponent(connectorAgentId)}`),
@@ -95,6 +96,7 @@ export default function GoatmezPage() {
         api("config"),
         api("conflicts"),
         api("diagnostics"),
+        api("mcp/explorer"),
         api("metrics"),
         api("activity/recent?limit=20"),
         api("connectors/matrix?agents=operator,developer"),
@@ -112,6 +114,7 @@ export default function GoatmezPage() {
       setConfigReport((cfg && typeof cfg.config === "object" && cfg.config) ? cfg.config as AnyRecord : {});
       setConflictRules((conflicts && Array.isArray(conflicts.rules)) ? conflicts.rules as AnyRecord[] : []);
       setDiagnostics((diag && typeof diag === "object") ? diag as AnyRecord : {});
+      setMcpExplorer((mcpExplorerPayload && typeof mcpExplorerPayload === "object") ? mcpExplorerPayload as AnyRecord : {});
       setMetrics((metricsPayload && typeof metricsPayload === "object") ? metricsPayload as AnyRecord : {});
       setActivity((activityPayload && typeof activityPayload === "object") ? activityPayload as AnyRecord : {});
       setConnectorMatrix((matrixPayload && typeof matrixPayload === "object") ? matrixPayload as AnyRecord : {});
@@ -307,7 +310,10 @@ export default function GoatmezPage() {
             <pre className="whitespace-pre-wrap break-all">{JSON.stringify(configReport, null, 2)}</pre>
           ))}
           {card("MCP Diagnostics", (
-            <pre className="whitespace-pre-wrap break-all">{JSON.stringify(diagnostics.mcp || {}, null, 2)}</pre>
+            <div className="space-y-2">
+              <pre className="whitespace-pre-wrap break-all">{JSON.stringify(diagnostics.mcp || {}, null, 2)}</pre>
+              <pre className="whitespace-pre-wrap break-all">{JSON.stringify(mcpExplorer, null, 2)}</pre>
+            </div>
           ))}
         </div>
 

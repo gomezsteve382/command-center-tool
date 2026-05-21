@@ -39,6 +39,10 @@ async function main() {
   assert(diagnostics.ok === true, "diagnostics.ok must be true");
   assert(diagnostics.mcp && typeof diagnostics.mcp === "object", "diagnostics.mcp missing");
 
+  const mcpExplorer = await request("/api/goatmez/mcp/explorer");
+  assert(mcpExplorer.ok === true, "mcp explorer must be ok");
+  assert(Array.isArray(mcpExplorer.servers), "mcp explorer servers missing");
+
   const metrics = await request("/api/goatmez/metrics");
   assert(metrics.ok === true, "metrics.ok must be true");
 
@@ -182,6 +186,7 @@ async function main() {
         queue: observability.queue,
         connectorSummary: observability.connectors,
         mcpSummary: diagnostics.mcp,
+        mcpExplorerServers: mcpExplorer.servers.length,
         queueMetrics: metrics.queue,
         connectorDiagnostics: connectorDiagnostics.connectors.length,
         connectorMatrixAgents: connectorMatrix.agents,

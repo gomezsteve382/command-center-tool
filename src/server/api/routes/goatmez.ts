@@ -29,6 +29,10 @@ export function createGoatmezRouter(): express.Router {
     res.json({ ok: true, mcp: runtime.diagnosticsSnapshot().mcp });
   });
 
+  router.get("/mcp/explorer", auth, (_req: Request, res: Response) => {
+    res.json(runtime.mcpExplorerSnapshot());
+  });
+
   router.post("/mcp/reload", auth, limit, (_req: Request, res: Response) => {
     res.json({ ok: true, mcp: runtime.diagnosticsSnapshot().mcp, reloadedAt: new Date().toISOString() });
   });
