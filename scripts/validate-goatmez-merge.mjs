@@ -1,4 +1,7 @@
+import { existsSync } from "fs";
+
 const baseUrl = process.env.GOATMEZ_VALIDATE_BASE_URL || "http://127.0.0.1:3101";
+const artifactSourcePath = process.env.GOATMEZ_ARTIFACT_SOURCE || "C:\\Users\\gomez\\Desktop\\ALL_DELIVERABLES.zip";
 
 async function request(path, init) {
   const res = await fetch(`${baseUrl}${path}`, init);
@@ -196,6 +199,72 @@ async function main() {
   assert(knowledge.ok === true, "knowledge search failed");
   assert(Array.isArray(knowledge.results), "knowledge search must return results array");
 
+  let artifactSummary = { skipped: true, sourcePath: artifactSourcePath };
+  if (existsSync(artifactSourcePath)) {
+    const registered = await request("/api/goatmez/artifacts/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: artifactSourcePath })
+    });
+    assert(registered.ok === true, "artifact registration failed");
+    assert(registered.bundle && typeof registered.bundle === "object", "artifact bundle missing");
+    assert(typeof registered.bundle.sha256 === "string" && registered.bundle.sha256.length === 64, "artifact bundle sha256 missing");
+    assert(Array.isArray(registered.bundle.entries), "artifact entries missing");
+    assert(Array.isArray(registered.bundle.nestedEntries), "artifact nested entries missing");
+    assert(registered.bundle.entries.some((entry) => String(entry.path).toLowerCase().endsWith(".md")), "artifact markdown docs missing");
+
+    const blockedPattern = /\.(bin|zip|py|cs|as)$/i;
+    const combinedEntries = [...registered.bundle.entries, ...registered.bundle.nestedEntries];
+    assert(combinedEntries.some((entry) => blockedPattern.test(String(entry.path))), "artifact blocked entries not detected");
+    assert(
+      combinedEntries.filter((entry) => blockedPattern.test(String(entry.path))).every((entry) => entry.allowedForIngestion === false),
+      "blocked artifact entries must not be ingestible"
+    );
+    assert(
+      registered.bundle.nestedEntries.every((entry) => entry.allowedForIngestion === false),
+      "nested archive entries must remain inventory-only"
+    );
+
+    const scanned = await request(`/api/goatmez/artifacts/${registered.bundle.id}/scan`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    assert(scanned.ok === true, "artifact scan failed");
+    assert(scanned.bundle.status === "scanned", "artifact scan status mismatch");
+
+    const risk = await request(`/api/goatmez/artifacts/${registered.bundle.id}/risk`);
+    assert(risk.ok === true, "artifact risk summary failed");
+    assert(risk.counts && risk.counts.excluded > 0, "artifact risk summary should include exclusions");
+
+    const ingested = await request(`/api/goatmez/artifacts/${registered.bundle.id}/ingest-docs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+    assert(ingested.ok === true, "artifact doc ingestion failed");
+    assert(ingested.result && ingested.result.ingested > 0, "artifact doc ingestion should import at least one safe doc");
+
+    const artifactKnowledge = await request("/api/goatmez/knowledge/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: "artifact quarantined documentation", mode: "hybrid", limit: 5 })
+    });
+    assert(artifactKnowledge.ok === true, "artifact knowledge search failed");
+    assert(Array.isArray(artifactKnowledge.results), "artifact knowledge results missing");
+    assert(artifactKnowledge.results.length > 0, "artifact knowledge search should find imported docs");
+
+    artifactSummary = {
+      skipped: false,
+      bundleId: registered.bundle.id,
+      entries: registered.bundle.entries.length,
+      nestedEntries: registered.bundle.nestedEntries.length,
+      excluded: risk.counts.excluded,
+      ingested: ingested.result.ingested,
+      redactions: ingested.result.redactionCount
+    };
+  }
+
   const sessions = await request("/api/goatmez/sessions");
   assert(Array.isArray(sessions), "sessions must be an array");
   if (sessions.length > 0 && sessions[0]?.id) {
@@ -257,7 +326,8 @@ async function main() {
         permissionSummary: permissionDiagnostics.decisionSummary,
         simulationCount: simulation.evaluatedCount,
         conflictRules: conflicts.rules.length,
-        knowledgeResults: knowledge.results.length
+        knowledgeResults: knowledge.results.length,
+        artifactSummary
       },
       null,
       2

@@ -1,6 +1,15 @@
 import { readFileSync } from "fs";
 import { basename, resolve } from "path";
 import { agentCapabilityMatrix, ensureDefaultAgents } from "./agents.js";
+import {
+  DEFAULT_ARTIFACT_SOURCE_PATH,
+  artifactRiskSummary,
+  getArtifactBundle,
+  ingestArtifactDocuments,
+  listArtifactBundles,
+  registerArtifactBundle,
+  scanArtifactBundle
+} from "./artifacts.js";
 import { getGoatmezConfig, readConnectorProfiles } from "./config.js";
 import { importLegacyGoatmezData, getGoatmezConfigCompatibility } from "./compat.js";
 import { getGoatmezConflictRules } from "./conflicts.js";
@@ -23,6 +32,7 @@ import type {
   GoatmezApprovalRecord,
   GoatmezApprovalStatus,
   GoatmezAgentProfile,
+  GoatmezArtifactBundle,
   GoatmezConnectorProfile,
   GoatmezCommandPreview,
   GoatmezMissionRecord,
@@ -66,7 +76,8 @@ function summarizeState(state: GoatmezStateSchema): Record<string, unknown> {
     knowledgeChunks: state.knowledgeChunks.length,
     plugins: state.plugins.length,
     models: state.models.length,
-    agents: state.agents.length
+    agents: state.agents.length,
+    artifacts: state.artifacts.length
   };
 }
 
@@ -118,6 +129,7 @@ export class GoatmezRuntime {
     state.plugins = ensureDefaultPlugins(state.plugins);
     state.models = ensureDefaultModels(state.models);
     state.agents = ensureDefaultAgents(state.agents);
+    state.artifacts = state.artifacts || [];
     this.stateStore.write(state);
     return state;
   }
@@ -481,6 +493,12 @@ export class GoatmezRuntime {
         total: state.agents.length,
         enabled: state.agents.filter((agent) => agent.enabled).length
       },
+      artifacts: {
+        bundles: state.artifacts.length,
+        entries: state.artifacts.reduce((sum, artifact) => sum + artifact.entries.length + artifact.nestedEntries.length, 0),
+        quarantined: state.artifacts.reduce((sum, artifact) => sum + artifact.excludedCount, 0),
+        ingestedDocuments: state.artifacts.reduce((sum, artifact) => sum + artifact.ingestedDocumentIds.length, 0)
+      },
       vault: {
         configured: this.vault.configured,
         secrets: this.vaultStore.read().secrets.length
@@ -535,6 +553,11 @@ export class GoatmezRuntime {
       knowledge: {
         documents: state.knowledgeDocuments.length,
         chunks: state.knowledgeChunks.length
+      },
+      artifacts: {
+        bundles: state.artifacts.length,
+        quarantined: state.artifacts.reduce((sum, artifact) => sum + artifact.excludedCount, 0),
+        ingestedDocuments: state.artifacts.reduce((sum, artifact) => sum + artifact.ingestedDocumentIds.length, 0)
       }
     };
   }
@@ -684,6 +707,11 @@ export class GoatmezRuntime {
         documents: state.knowledgeDocuments.length,
         chunks: state.knowledgeChunks.length
       },
+      artifacts: {
+        bundles: state.artifacts.length,
+        entries: state.artifacts.reduce((sum, artifact) => sum + artifact.entries.length + artifact.nestedEntries.length, 0),
+        ingestedDocuments: state.artifacts.reduce((sum, artifact) => sum + artifact.ingestedDocumentIds.length, 0)
+      },
       connectors: {
         total: connectors.length,
         ready: connectors.filter((item) => item.ready).length,
@@ -773,6 +801,43 @@ export class GoatmezRuntime {
       provider: record.provider,
       updatedAt: record.updatedAt
     };
+  }
+
+  listArtifacts(): GoatmezArtifactBundle[] {
+    const state = this.ensureState();
+    return listArtifactBundles(state);
+  }
+
+  registerArtifact(sourcePath = DEFAULT_ARTIFACT_SOURCE_PATH): GoatmezArtifactBundle {
+    const state = this.ensureState();
+    const bundle = registerArtifactBundle(state, sourcePath);
+    this.stateStore.write(state);
+    return bundle;
+  }
+
+  getArtifact(id: string): GoatmezArtifactBundle | null {
+    const state = this.ensureState();
+    return getArtifactBundle(state, id);
+  }
+
+  scanArtifact(id: string): GoatmezArtifactBundle | null {
+    const state = this.ensureState();
+    const bundle = scanArtifactBundle(state, id);
+    if (bundle) this.stateStore.write(state);
+    return bundle;
+  }
+
+  ingestArtifactDocs(id: string): Record<string, unknown> | null {
+    const state = this.ensureState();
+    const result = ingestArtifactDocuments(state, id);
+    if (result) this.stateStore.write(state);
+    return result;
+  }
+
+  artifactRisk(id: string): Record<string, unknown> | null {
+    const artifact = this.getArtifact(id);
+    if (!artifact) return null;
+    return artifactRiskSummary(artifact);
   }
 }
 

@@ -13,6 +13,7 @@ const scanTargets = [
 ];
 
 const allowedExtensions = new Set([".ts", ".tsx", ".mjs", ".md", ".json"]);
+const disallowedPayloadExtensions = new Set([".as", ".baml", ".bin", ".cs", ".dat", ".dll", ".exe", ".ico", ".jpg", ".jpeg", ".png", ".py", ".zip"]);
 const forbiddenPatterns = [
   /claude-code-main/i,
   /claude-code-main-clean/i,
@@ -25,28 +26,38 @@ function extensionOf(path) {
   return index === -1 ? "" : path.slice(index);
 }
 
-function collectFiles(path) {
+function collectAllFiles(path) {
   const absolute = resolve(root, path);
   if (!existsSync(absolute)) return [];
   const stat = statSync(absolute);
-  if (stat.isFile()) {
-    return allowedExtensions.has(extensionOf(absolute)) ? [absolute] : [];
-  }
+  if (stat.isFile()) return [absolute];
   const files = [];
   for (const entry of readdirSync(absolute)) {
     const child = join(absolute, entry);
     const childStat = statSync(child);
     if (childStat.isDirectory()) {
-      files.push(...collectFiles(child));
-    } else if (allowedExtensions.has(extensionOf(child))) {
+      files.push(...collectAllFiles(child));
+    } else {
       files.push(child);
     }
   }
   return files;
 }
 
-const files = [...new Set(scanTargets.flatMap(collectFiles))].sort();
+const allFiles = [...new Set(scanTargets.flatMap(collectAllFiles))].sort();
+const files = allFiles.filter((file) => allowedExtensions.has(extensionOf(file))).sort();
 const violations = [];
+
+for (const file of allFiles) {
+  const extension = extensionOf(file).toLowerCase();
+  if (disallowedPayloadExtensions.has(extension)) {
+    violations.push({
+      file: relative(root, file),
+      pattern: "forbidden-payload-extension",
+      match: extension
+    });
+  }
+}
 
 for (const file of files) {
   const text = readFileSync(file, "utf8");

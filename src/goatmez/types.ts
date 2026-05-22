@@ -140,6 +140,54 @@ export interface GoatmezAgentProfile {
   updatedAt: string;
 }
 
+export type GoatmezArtifactEntryKind = "markdown" | "text" | "binary" | "archive" | "script" | "source" | "image" | "other";
+
+export type GoatmezArtifactRisk =
+  | "safe-doc"
+  | "vehicle-security"
+  | "binary-payload"
+  | "source-archive"
+  | "executable-script"
+  | "decompiled-source"
+  | "secret-material"
+  | "patch-material"
+  | "excluded";
+
+export interface GoatmezArtifactEntry {
+  id: string;
+  path: string;
+  nestedIn?: string;
+  kind: GoatmezArtifactEntryKind;
+  mimeType?: string;
+  length: number;
+  compressedLength: number;
+  sha256?: string;
+  compressionMethod?: number;
+  allowedForIngestion: boolean;
+  exclusionReason?: string;
+  risks: GoatmezArtifactRisk[];
+}
+
+export interface GoatmezArtifactBundle {
+  id: string;
+  name: string;
+  sourcePath: string;
+  sha256: string;
+  status: "registered" | "scanned" | "ingested" | "missing" | "failed";
+  entries: GoatmezArtifactEntry[];
+  nestedEntries: GoatmezArtifactEntry[];
+  docCount: number;
+  excludedCount: number;
+  ingestedDocumentIds: string[];
+  redactionCount: number;
+  provenance: string;
+  createdAt: string;
+  updatedAt: string;
+  lastScannedAt?: string;
+  lastIngestedAt?: string;
+  error?: string;
+}
+
 export interface GoatmezStateSchema {
   version: 1;
   updatedAt: string;
@@ -153,6 +201,7 @@ export interface GoatmezStateSchema {
   plugins: GoatmezPluginRecord[];
   models: GoatmezModelProfile[];
   agents: GoatmezAgentProfile[];
+  artifacts: GoatmezArtifactBundle[];
 }
 
 export interface GoatmezVaultSchema {

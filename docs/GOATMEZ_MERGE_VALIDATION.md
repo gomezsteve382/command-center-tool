@@ -86,6 +86,18 @@ Use these scripts to validate the Goatmez hard-merge slice without waiting on a 
   - Marks an approval item as rejected.
 - `GET /api/goatmez/connectors/matrix?agents=operator,developer`
   - Returns connector readiness/allowlist matrix for multiple agents.
+- `GET /api/goatmez/artifacts`
+  - Lists Artifact Vault bundles registered by local path with inventory counts, checksums, and quarantine state.
+- `POST /api/goatmez/artifacts/register`
+  - Registers a local ZIP source by path and computes metadata without extracting files into the repository.
+- `GET /api/goatmez/artifacts/:id`
+  - Returns read-only bundle inventory, entry classifications, hashes, and ingestion status.
+- `POST /api/goatmez/artifacts/:id/scan`
+  - Re-reads the ZIP central directory and refreshes inventory metadata only.
+- `POST /api/goatmez/artifacts/:id/ingest-docs`
+  - Imports only redacted markdown/text documentation into the quarantined knowledge namespace.
+- `GET /api/goatmez/artifacts/:id/risk`
+  - Returns risk labels, exclusions, redaction counts, and operator quarantine notes.
 
 ## API startup for validation
 

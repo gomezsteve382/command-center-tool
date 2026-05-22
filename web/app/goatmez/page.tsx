@@ -87,12 +87,17 @@ export default function GoatmezPage() {
   const [connectorDiagnosticsResult, setConnectorDiagnosticsResult] = useState<AnyRecord>({});
   const [connectorVerifyResult, setConnectorVerifyResult] = useState<AnyRecord>({});
   const [approvalFilter, setApprovalFilter] = useState("pending");
+  const [artifactPath, setArtifactPath] = useState("C:\\Users\\gomez\\Desktop\\ALL_DELIVERABLES.zip");
+  const [artifacts, setArtifacts] = useState<AnyRecord[]>([]);
+  const [artifactDetail, setArtifactDetail] = useState<AnyRecord>({});
+  const [artifactRisk, setArtifactRisk] = useState<AnyRecord>({});
+  const [artifactActionResult, setArtifactActionResult] = useState<AnyRecord>({});
 
   const refresh = async () => {
     setLoading(true);
     setError("");
     try {
-      const [h, o, readyPayload, c, r, s, a, cfg, conflicts, diag, mcpExplorerPayload, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload, modelPayload, modelRegistryPayload, agentPayload, agentMatrixPayload] = await Promise.all([
+      const [h, o, readyPayload, c, r, s, a, cfg, conflicts, diag, mcpExplorerPayload, metricsPayload, activityPayload, matrixPayload, permDiag, pluginPayload, pluginRegistryPayload, pluginHooksPayload, modelPayload, modelRegistryPayload, agentPayload, agentMatrixPayload, artifactPayload] = await Promise.all([
         api("health"),
         api("observability"),
         api("readiness"),
@@ -114,7 +119,8 @@ export default function GoatmezPage() {
         api("models"),
         api("models/registry"),
         api("agents"),
-        api("agents/matrix")
+        api("agents/matrix"),
+        api("artifacts")
       ]);
       setHealth(h);
       setObservability(o);
@@ -138,6 +144,7 @@ export default function GoatmezPage() {
       setModelRegistry((modelRegistryPayload && typeof modelRegistryPayload === "object") ? modelRegistryPayload as AnyRecord : {});
       setAgents((agentPayload && Array.isArray(agentPayload.agents)) ? agentPayload.agents as AnyRecord[] : []);
       setAgentMatrix((agentMatrixPayload && typeof agentMatrixPayload === "object") ? agentMatrixPayload as AnyRecord : {});
+      setArtifacts((artifactPayload && Array.isArray(artifactPayload.artifacts)) ? artifactPayload.artifacts as AnyRecord[] : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -151,6 +158,7 @@ export default function GoatmezPage() {
     const ready = connectors.filter((item) => item.ready).length;
     return `${ready}/${connectors.length}`;
   }, [connectors]);
+  const selectedArtifactId = String(artifacts[0]?.id || "");
 
   return (
     <main className="min-h-screen bg-surface-950 text-surface-100 p-6">
@@ -499,6 +507,99 @@ export default function GoatmezPage() {
                 ))}
                 {!kbResults.length && <p className="text-surface-500">No results yet.</p>}
               </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          {card("Artifact Vault", (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
+                <input
+                  value={artifactPath}
+                  onChange={(event) => setArtifactPath(event.target.value)}
+                  className="lg:col-span-2 rounded border border-surface-700 bg-surface-950 px-3 py-2 text-xs"
+                />
+                <button
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800"
+                  onClick={async () => {
+                    const payload = await api("artifacts/register", {
+                      method: "POST",
+                      body: JSON.stringify({ path: artifactPath })
+                    });
+                    setArtifactActionResult(payload);
+                    setArtifactDetail(payload);
+                    await refresh();
+                  }}
+                >
+                  Register
+                </button>
+                <button
+                  disabled={!selectedArtifactId}
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800 disabled:opacity-50"
+                  onClick={async () => {
+                    const payload = await api(`artifacts/${encodeURIComponent(selectedArtifactId)}/scan`, {
+                      method: "POST",
+                      body: "{}"
+                    });
+                    setArtifactActionResult(payload);
+                    setArtifactDetail(payload);
+                    await refresh();
+                  }}
+                >
+                  Scan
+                </button>
+                <button
+                  disabled={!selectedArtifactId}
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800 disabled:opacity-50"
+                  onClick={async () => {
+                    const payload = await api(`artifacts/${encodeURIComponent(selectedArtifactId)}/ingest-docs`, {
+                      method: "POST",
+                      body: "{}"
+                    });
+                    setArtifactActionResult(payload);
+                    await refresh();
+                  }}
+                >
+                  Ingest Docs
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  disabled={!selectedArtifactId}
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800 disabled:opacity-50"
+                  onClick={async () => {
+                    const payload = await api(`artifacts/${encodeURIComponent(selectedArtifactId)}`);
+                    setArtifactDetail(payload);
+                  }}
+                >
+                  Inspect Latest
+                </button>
+                <button
+                  disabled={!selectedArtifactId}
+                  className="rounded-md border border-surface-700 px-3 py-2 text-xs hover:bg-surface-800 disabled:opacity-50"
+                  onClick={async () => {
+                    const payload = await api(`artifacts/${encodeURIComponent(selectedArtifactId)}/risk`);
+                    setArtifactRisk(payload);
+                  }}
+                >
+                  Risk Summary
+                </button>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                {artifacts.map((artifact) => (
+                  <div key={String(artifact.id)} className="rounded border border-surface-700 p-2">
+                    <div className="font-medium">{String(artifact.name || artifact.id)}</div>
+                    <div className="text-surface-400">status={String(artifact.status)} | docs={String(artifact.docCount)} | excluded={String(artifact.excludedCount)}</div>
+                    <div className="text-surface-500 mt-1">sha256={String(artifact.sha256 || "").slice(0, 24)}</div>
+                    <div className="text-surface-500 mt-1">source={String(artifact.sourcePath || "")}</div>
+                  </div>
+                ))}
+                {!artifacts.length && <p className="text-surface-500">No artifact bundles registered.</p>}
+              </div>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all">{JSON.stringify(artifactActionResult, null, 2)}</pre>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all">{JSON.stringify(artifactRisk, null, 2)}</pre>
+              <pre className="rounded border border-surface-700 bg-surface-950 p-3 whitespace-pre-wrap break-all max-h-[360px] overflow-auto">{JSON.stringify(artifactDetail, null, 2)}</pre>
             </div>
           ))}
         </div>

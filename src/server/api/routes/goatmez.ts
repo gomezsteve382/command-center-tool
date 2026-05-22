@@ -86,6 +86,66 @@ export function createGoatmezRouter(): express.Router {
     res.json(runtime.readinessSnapshot());
   });
 
+  router.get("/artifacts", auth, (_req: Request, res: Response) => {
+    res.json({ ok: true, artifacts: runtime.listArtifacts() });
+  });
+
+  router.post("/artifacts/register", auth, limit, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const sourcePath = typeof req.body?.path === "string" && req.body.path.trim()
+        ? req.body.path.trim()
+        : undefined;
+      const bundle = runtime.registerArtifact(sourcePath);
+      res.json({ ok: bundle.status !== "failed", bundle });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/artifacts/:id", auth, (req: Request, res: Response) => {
+    const bundle = runtime.getArtifact(req.params.id);
+    if (!bundle) {
+      res.status(404).json({ ok: false, error: "artifact not found" });
+      return;
+    }
+    res.json({ ok: true, bundle });
+  });
+
+  router.post("/artifacts/:id/scan", auth, limit, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const bundle = runtime.scanArtifact(req.params.id);
+      if (!bundle) {
+        res.status(404).json({ ok: false, error: "artifact not found" });
+        return;
+      }
+      res.json({ ok: true, bundle });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/artifacts/:id/ingest-docs", auth, limit, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = runtime.ingestArtifactDocs(req.params.id);
+      if (!result) {
+        res.status(404).json({ ok: false, error: "artifact not found" });
+        return;
+      }
+      res.json({ ok: true, result });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/artifacts/:id/risk", auth, (req: Request, res: Response) => {
+    const risk = runtime.artifactRisk(req.params.id);
+    if (!risk) {
+      res.status(404).json({ ok: false, error: "artifact not found" });
+      return;
+    }
+    res.json(risk);
+  });
+
   router.get("/connectors", auth, (req: Request, res: Response) => {
     const agentId = typeof req.query?.agentId === "string" ? req.query.agentId : "operator";
     res.json(runtime.connectorsStatus(agentId));

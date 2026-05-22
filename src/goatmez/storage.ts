@@ -15,7 +15,8 @@ export function emptyGoatmezState(): GoatmezStateSchema {
     knowledgeChunks: [],
     plugins: [],
     models: [],
-    agents: []
+    agents: [],
+    artifacts: []
   };
 }
 
