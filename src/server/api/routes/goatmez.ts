@@ -87,7 +87,7 @@ export function createGoatmezRouter(): express.Router {
   });
 
   router.get("/artifacts", auth, (_req: Request, res: Response) => {
-    res.json({ ok: true, artifacts: runtime.listArtifacts() });
+    res.json({ ok: true, artifacts: runtime.listArtifactSummaries() });
   });
 
   router.post("/artifacts/register", auth, limit, (req: Request, res: Response, next: NextFunction) => {

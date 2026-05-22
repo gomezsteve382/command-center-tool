@@ -373,6 +373,31 @@ export function listArtifactBundles(state: GoatmezStateSchema): GoatmezArtifactB
   return [...ensureArtifacts(state)].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
+export function artifactBundleSummary(bundle: GoatmezArtifactBundle): Record<string, unknown> {
+  const allEntries = [...bundle.entries, ...bundle.nestedEntries];
+  const risks = [...new Set(allEntries.flatMap((entry) => entry.risks))].sort();
+  return {
+    id: bundle.id,
+    name: bundle.name,
+    sourcePath: bundle.sourcePath,
+    sha256: bundle.sha256,
+    status: bundle.status,
+    docCount: bundle.docCount,
+    excludedCount: bundle.excludedCount,
+    redactionCount: bundle.redactionCount,
+    ingestedDocumentCount: bundle.ingestedDocumentIds.length,
+    topLevelEntryCount: bundle.entries.length,
+    nestedEntryCount: bundle.nestedEntries.length,
+    risks,
+    provenance: bundle.provenance,
+    createdAt: bundle.createdAt,
+    updatedAt: bundle.updatedAt,
+    lastScannedAt: bundle.lastScannedAt,
+    lastIngestedAt: bundle.lastIngestedAt,
+    error: bundle.error
+  };
+}
+
 export function getArtifactBundle(state: GoatmezStateSchema, id: string): GoatmezArtifactBundle | null {
   return ensureArtifacts(state).find((bundle) => bundle.id === id) || null;
 }

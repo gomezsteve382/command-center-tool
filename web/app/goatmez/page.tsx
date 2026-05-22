@@ -38,6 +38,29 @@ function card(title: string, body: ReactNode) {
   );
 }
 
+function compactArtifactPayload(payload: AnyRecord): AnyRecord {
+  const bundle = payload.bundle;
+  if (!bundle || typeof bundle !== "object") return payload;
+  const artifact = bundle as AnyRecord;
+  return {
+    ...payload,
+    bundle: {
+      id: artifact.id,
+      name: artifact.name,
+      status: artifact.status,
+      sourcePath: artifact.sourcePath,
+      sha256: artifact.sha256,
+      docCount: artifact.docCount,
+      excludedCount: artifact.excludedCount,
+      redactionCount: artifact.redactionCount,
+      topLevelEntryCount: Array.isArray(artifact.entries) ? artifact.entries.length : artifact.topLevelEntryCount,
+      nestedEntryCount: Array.isArray(artifact.nestedEntries) ? artifact.nestedEntries.length : artifact.nestedEntryCount,
+      ingestedDocumentCount: Array.isArray(artifact.ingestedDocumentIds) ? artifact.ingestedDocumentIds.length : artifact.ingestedDocumentCount,
+      updatedAt: artifact.updatedAt
+    }
+  };
+}
+
 export default function GoatmezPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -527,8 +550,8 @@ export default function GoatmezPage() {
                       method: "POST",
                       body: JSON.stringify({ path: artifactPath })
                     });
-                    setArtifactActionResult(payload);
-                    setArtifactDetail(payload);
+                    setArtifactActionResult(compactArtifactPayload(payload));
+                    setArtifactDetail({});
                     await refresh();
                   }}
                 >
@@ -542,8 +565,8 @@ export default function GoatmezPage() {
                       method: "POST",
                       body: "{}"
                     });
-                    setArtifactActionResult(payload);
-                    setArtifactDetail(payload);
+                    setArtifactActionResult(compactArtifactPayload(payload));
+                    setArtifactDetail({});
                     await refresh();
                   }}
                 >

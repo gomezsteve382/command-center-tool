@@ -3,6 +3,7 @@ import { basename, resolve } from "path";
 import { agentCapabilityMatrix, ensureDefaultAgents } from "./agents.js";
 import {
   DEFAULT_ARTIFACT_SOURCE_PATH,
+  artifactBundleSummary,
   artifactRiskSummary,
   getArtifactBundle,
   ingestArtifactDocuments,
@@ -806,6 +807,10 @@ export class GoatmezRuntime {
   listArtifacts(): GoatmezArtifactBundle[] {
     const state = this.ensureState();
     return listArtifactBundles(state);
+  }
+
+  listArtifactSummaries(): Record<string, unknown>[] {
+    return this.listArtifacts().map((artifact) => artifactBundleSummary(artifact));
   }
 
   registerArtifact(sourcePath = DEFAULT_ARTIFACT_SOURCE_PATH): GoatmezArtifactBundle {
